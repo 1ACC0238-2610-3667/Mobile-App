@@ -1,4 +1,4 @@
-package com.appsmoviles.splitly.view.auth
+package com.appsmoviles.splitly.view.iam
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
@@ -24,13 +24,13 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.navigation.NavHostController
 import com.appsmoviles.splitly.R
+import com.appsmoviles.splitly.viewmodel.AuthViewModel
 
 @Composable
-fun LogIn(nav: NavHostController) {
+fun LogIn(nav: NavHostController, viewModel: AuthViewModel) {
     var txtUser by remember { mutableStateOf("") }
     var txtPas by remember { mutableStateOf("") }
     var isPasswordVisible by remember { mutableStateOf(false) }
-    var isDisplay by remember { mutableStateOf(false) }
 
     Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
         Column(
@@ -102,18 +102,25 @@ fun LogIn(nav: NavHostController) {
 
             Button(
                 onClick = {
-                    if (txtUser == "jose@gmail.com" && txtPas == "123123") {
+                    viewModel.login(txtUser, txtPas) {
                         nav.navigate("Dashboard")
-                    } else {
-                        isDisplay = true
                     }
                 },
+                enabled = !viewModel.isLoading,
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(56.dp),
                 shape = RoundedCornerShape(12.dp)
             ) {
-                Text(text = "Log In", fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                if (viewModel.isLoading) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(24.dp),
+                        color = MaterialTheme.colorScheme.onPrimary,
+                        strokeWidth = 2.dp
+                    )
+                } else {
+                    Text(text = "Log In", fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                }
             }
 
             Spacer(modifier = Modifier.height(24.dp))
@@ -135,8 +142,8 @@ fun LogIn(nav: NavHostController) {
         }
     }
 
-    if (isDisplay) {
-        Dialog(onDismissRequest = { isDisplay = false }) {
+    if (viewModel.errorMessage != null) {
+        Dialog(onDismissRequest = { viewModel.clearError() }) {
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -157,13 +164,13 @@ fun LogIn(nav: NavHostController) {
                     )
                     Spacer(modifier = Modifier.height(16.dp))
                     Text(
-                        text = "The email or password you entered is incorrect. Please try again.",
+                        text = viewModel.errorMessage ?: "An unknown error occurred.",
                         textAlign = TextAlign.Center,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     Spacer(modifier = Modifier.height(24.dp))
                     Button(
-                        onClick = { isDisplay = false },
+                        onClick = { viewModel.clearError() },
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         Text("Try Again")

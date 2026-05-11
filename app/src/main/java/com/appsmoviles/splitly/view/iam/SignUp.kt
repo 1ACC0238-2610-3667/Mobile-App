@@ -1,8 +1,9 @@
-package com.appsmoviles.splitly.view.auth
+package com.appsmoviles.splitly.view.iam
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -32,8 +33,12 @@ fun SignUp(nav: NavHostController) {
     var txtEmail by remember { mutableStateOf("") }
     var txtPas by remember { mutableStateOf("") }
     var txtConfirmPas by remember { mutableStateOf("") }
+    var role by remember { mutableStateOf("") }
     var isPasswordVisible by remember { mutableStateOf(false) }
     var isConfirmPasswordVisible by remember { mutableStateOf(false) }
+
+    //For Role Switcher
+    var checked by remember { mutableStateOf(false) }
 
     Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
         Column(
@@ -69,6 +74,38 @@ fun SignUp(nav: NavHostController) {
             )
 
             Spacer(modifier = Modifier.height(32.dp))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Center
+            ) {
+                Text(
+                    text = "Member",
+                    color = if (!checked) MaterialTheme.colorScheme.primary else Color.Gray,
+                    fontWeight = if (!checked) FontWeight.Bold else FontWeight.Normal
+                )
+
+                Spacer(modifier = Modifier.width(12.dp))
+
+                Switch(
+                    checked = checked,
+                    onCheckedChange = {
+                        checked = it
+                        role = if (checked) "Representative" else "Member"
+                    }
+                )
+
+                Spacer(modifier = Modifier.width(12.dp))
+
+                Text(
+                    text = "Representative",
+                    color = if (checked) MaterialTheme.colorScheme.primary else Color.Gray,
+                    fontWeight = if (checked) FontWeight.Bold else FontWeight.Normal
+                )
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
 
             OutlinedTextField(
                 value = txtName,

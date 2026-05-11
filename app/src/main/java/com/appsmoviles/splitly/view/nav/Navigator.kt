@@ -10,16 +10,18 @@ import com.appsmoviles.splitly.view.Expenses
 import com.appsmoviles.splitly.view.Households
 import com.appsmoviles.splitly.view.Members
 import com.appsmoviles.splitly.view.Settings
-import com.appsmoviles.splitly.view.auth.LogIn
-import com.appsmoviles.splitly.view.auth.SignUp
+import com.appsmoviles.splitly.view.iam.LogIn
+import com.appsmoviles.splitly.view.iam.SignUp
+import com.appsmoviles.splitly.viewmodel.AuthViewModel
 
 @Composable
-fun Navigator(){
+fun Navigator(authViewModel: AuthViewModel){
+
 
     var rememberScreen = rememberNavController()
 
     NavHost(navController = rememberScreen, startDestination = "LogIn"){
-        composable("LogIn") { LogIn(rememberScreen) }
+        composable("LogIn") { LogIn(rememberScreen, authViewModel) }
         composable("SignUp") { SignUp(rememberScreen) }
         composable("Contributions") { Contributions() }
         composable("Dashboard") { Dashboard() }
