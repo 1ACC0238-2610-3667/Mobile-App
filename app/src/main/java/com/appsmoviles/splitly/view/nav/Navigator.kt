@@ -8,6 +8,7 @@ import com.appsmoviles.splitly.view.Contributions
 import com.appsmoviles.splitly.view.Dashboard
 import com.appsmoviles.splitly.view.Expenses
 import com.appsmoviles.splitly.view.Households
+import com.appsmoviles.splitly.view.MainScreen
 import com.appsmoviles.splitly.view.Members
 import com.appsmoviles.splitly.view.Settings
 import com.appsmoviles.splitly.view.iam.LogIn
@@ -23,12 +24,7 @@ fun Navigator(authViewModel: AuthViewModel){
     NavHost(navController = rememberScreen, startDestination = "LogIn"){
         composable("LogIn") { LogIn(rememberScreen, authViewModel) }
         composable("SignUp") { SignUp(rememberScreen) }
-        composable("Contributions") { Contributions() }
-        composable("Dashboard") { Dashboard() }
-        composable("Expenses") { Expenses() }
-        composable("Households") { Households() }
-        composable("Members") { Members() }
-        composable("Settings") { Settings() }
+        composable("Main") { MainScreen(rememberScreen) }
 
     }
 }

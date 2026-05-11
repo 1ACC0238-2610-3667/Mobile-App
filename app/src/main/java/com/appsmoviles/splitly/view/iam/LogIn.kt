@@ -103,7 +103,7 @@ fun LogIn(nav: NavHostController, viewModel: AuthViewModel) {
             Button(
                 onClick = {
                     viewModel.login(txtUser, txtPas) {
-                        nav.navigate("Dashboard")
+                        nav.navigate("Main")
                     }
                 },
                 enabled = !viewModel.isLoading,
