@@ -1,5 +1,7 @@
 package com.appsmoviles.splitly.view.iam
 
+import android.content.Context
+import android.content.SharedPreferences
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -14,6 +16,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -28,9 +31,21 @@ import com.appsmoviles.splitly.viewmodel.AuthViewModel
 
 @Composable
 fun LogIn(nav: NavHostController, viewModel: AuthViewModel) {
-    var txtUser by remember { mutableStateOf("") }
+    val context = LocalContext.current
+    val sharedPreferences = remember { context.getSharedPreferences("splitly_prefs", Context.MODE_PRIVATE) }
+    
+    var txtUser by remember { mutableStateOf(sharedPreferences.getString("email", "") ?: "") }
     var txtPas by remember { mutableStateOf("") }
     var isPasswordVisible by remember { mutableStateOf(false) }
+
+    LaunchedEffect(Unit) {
+        val isLoggedIn = sharedPreferences.getBoolean("is_logged_in", false)
+        if (isLoggedIn) {
+            nav.navigate("Main") {
+                popUpTo("LogIn") { inclusive = true }
+            }
+        }
+    }
 
     Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
         Column(
@@ -103,7 +118,19 @@ fun LogIn(nav: NavHostController, viewModel: AuthViewModel) {
             Button(
                 onClick = {
                     viewModel.login(txtUser, txtPas) {
-                        nav.navigate("Main")
+                        // Save session to SharedPreferences
+                        sharedPreferences.edit().apply {
+                            putBoolean("is_logged_in", true)
+                            putString("email", txtUser)
+                            viewModel.user?.let {
+                                putInt("user_id", it.id)
+                                putString("user_name", it.name)
+                            }
+                            apply()
+                        }
+                        nav.navigate("Main") {
+                            popUpTo("LogIn") { inclusive = true }
+                        }
                     }
                 },
                 enabled = !viewModel.isLoading,

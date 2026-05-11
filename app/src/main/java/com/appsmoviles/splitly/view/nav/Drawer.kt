@@ -10,12 +10,12 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.Logout
 import androidx.compose.material.icons.rounded.*
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -23,10 +23,14 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
+import android.content.Context
 import com.appsmoviles.splitly.R
 
 @Composable
-fun Drawer(nav: NavHostController, onCloseDrawer: () -> Unit) {
+fun Drawer(nav: NavHostController, onCloseDrawer: () -> Unit, onLogOut: () -> Unit) {
+    val context = LocalContext.current
+    val sharedPreferences = remember { context.getSharedPreferences("splitly_prefs", Context.MODE_PRIVATE) }
+
     val navBackStackEntry by nav.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
 
@@ -135,8 +139,8 @@ fun Drawer(nav: NavHostController, onCloseDrawer: () -> Unit) {
             },
             selected = false,
             onClick = {
-                // Handle LogOut logic here, probably navigating to root LogIn
-                onCloseDrawer()
+                sharedPreferences.edit().clear().apply()
+                onLogOut()
             },
             icon = { 
                 Icon(

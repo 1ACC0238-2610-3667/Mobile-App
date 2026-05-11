@@ -1,9 +1,9 @@
 package com.appsmoviles.splitly.view.iam
 
+import android.content.Context
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -18,6 +18,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -26,14 +27,19 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import com.appsmoviles.splitly.R
+import com.appsmoviles.splitly.model.beans.iam.User
+import com.appsmoviles.splitly.viewmodel.AuthViewModel
 
 @Composable
-fun SignUp(nav: NavHostController) {
+fun SignUp(nav: NavHostController, viewModel: AuthViewModel) {
+    val context = LocalContext.current
+    val sharedPreferences = remember { context.getSharedPreferences("splitly_prefs", Context.MODE_PRIVATE) }
+
     var txtName by remember { mutableStateOf("") }
     var txtEmail by remember { mutableStateOf("") }
     var txtPas by remember { mutableStateOf("") }
     var txtConfirmPas by remember { mutableStateOf("") }
-    var role by remember { mutableStateOf("") }
+    var role by remember { mutableStateOf("Member") }
     var isPasswordVisible by remember { mutableStateOf(false) }
     var isConfirmPasswordVisible by remember { mutableStateOf(false) }
 
@@ -181,15 +187,40 @@ fun SignUp(nav: NavHostController) {
 
             Button(
                 onClick = {
-                    // Sign up logic
-                    nav.navigate("Dashboard")
+                    if (txtPas == txtConfirmPas) {
+                        val newUser = User(0, txtName, txtEmail, txtPas, role, "Free", "", "")
+                        viewModel.signUp(newUser) {
+                            sharedPreferences.edit().apply {
+                                putBoolean("is_logged_in", true)
+                                putString("email", txtEmail)
+                                viewModel.user?.let {
+                                    putInt("user_id", it.id)
+                                    putString("user_name", it.name)
+                                }
+                                apply()
+                            }
+                            nav.navigate("Main") {
+                                popUpTo("SignUp") { inclusive = true }
+                            }
+                        }
+                    } else {
+                    }
                 },
+                enabled = !viewModel.isLoading,
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(56.dp),
                 shape = RoundedCornerShape(12.dp)
             ) {
-                Text(text = "Sign Up", fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                if (viewModel.isLoading) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(24.dp),
+                        color = MaterialTheme.colorScheme.onPrimary,
+                        strokeWidth = 2.dp
+                    )
+                } else {
+                    Text(text = "Sign Up", fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                }
             }
 
             Spacer(modifier = Modifier.height(24.dp))

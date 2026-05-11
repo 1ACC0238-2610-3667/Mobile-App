@@ -23,8 +23,7 @@ fun Navigator(authViewModel: AuthViewModel){
 
     NavHost(navController = rememberScreen, startDestination = "LogIn"){
         composable("LogIn") { LogIn(rememberScreen, authViewModel) }
-        composable("SignUp") { SignUp(rememberScreen) }
+        composable("SignUp") { SignUp(rememberScreen, authViewModel) }
         composable("Main") { MainScreen(rememberScreen) }
-
     }
 }

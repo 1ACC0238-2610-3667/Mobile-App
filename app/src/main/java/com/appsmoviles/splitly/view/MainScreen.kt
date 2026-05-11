@@ -27,6 +27,14 @@ fun MainScreen(rootNav: NavHostController) {
                     nav = navController,
                     onCloseDrawer = {
                         scope.launch { drawerState.close() }
+                    },
+                    onLogOut = {
+                        scope.launch {
+                            drawerState.close()
+                            rootNav.navigate("LogIn") {
+                                popUpTo(0) { inclusive = true }
+                            }
+                        }
                     }
                 )
             }
