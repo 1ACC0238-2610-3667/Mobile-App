@@ -14,16 +14,16 @@ import com.appsmoviles.splitly.view.Settings
 import com.appsmoviles.splitly.view.iam.LogIn
 import com.appsmoviles.splitly.view.iam.SignUp
 import com.appsmoviles.splitly.viewmodel.AuthViewModel
+import com.appsmoviles.splitly.viewmodel.SettingsViewModel
 
 @Composable
-fun Navigator(authViewModel: AuthViewModel){
-
+fun Navigator(authViewModel: AuthViewModel, settingsViewModel: SettingsViewModel){
 
     var rememberScreen = rememberNavController()
 
     NavHost(navController = rememberScreen, startDestination = "LogIn"){
         composable("LogIn") { LogIn(rememberScreen, authViewModel) }
         composable("SignUp") { SignUp(rememberScreen, authViewModel) }
-        composable("Main") { MainScreen(rememberScreen) }
+        composable("Main") { MainScreen(rememberScreen, authViewModel, settingsViewModel) }
     }
 }

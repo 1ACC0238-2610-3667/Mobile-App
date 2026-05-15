@@ -1,6 +1,9 @@
 package com.appsmoviles.splitly.view.iam
 
 import android.content.Context
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -28,12 +31,14 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import com.appsmoviles.splitly.R
 import com.appsmoviles.splitly.model.beans.iam.User
+import com.appsmoviles.splitly.util.LocalTranslation
 import com.appsmoviles.splitly.viewmodel.AuthViewModel
 
 @Composable
 fun SignUp(nav: NavHostController, viewModel: AuthViewModel) {
     val context = LocalContext.current
     val sharedPreferences = remember { context.getSharedPreferences("splitly_prefs", Context.MODE_PRIVATE) }
+    val t = LocalTranslation.current
 
     var txtName by remember { mutableStateOf("") }
     var txtEmail by remember { mutableStateOf("") }
@@ -67,14 +72,14 @@ fun SignUp(nav: NavHostController, viewModel: AuthViewModel) {
             Spacer(modifier = Modifier.height(16.dp))
 
             Text(
-                text = "Create Account",
+                text = t["create_account"] ?: "Create Account",
                 fontSize = 28.sp,
                 fontWeight = FontWeight.ExtraBold,
                 color = MaterialTheme.colorScheme.primary
             )
 
             Text(
-                text = "Join Splitly and start sharing",
+                text = t["signup_subtitle"] ?: "Join Splitly and start sharing",
                 fontSize = 16.sp,
                 color = Color.Gray
             )
@@ -87,7 +92,7 @@ fun SignUp(nav: NavHostController, viewModel: AuthViewModel) {
                 horizontalArrangement = Arrangement.Center
             ) {
                 Text(
-                    text = "Member",
+                    text = t["member"] ?: "Member",
                     color = if (!checked) MaterialTheme.colorScheme.primary else Color.Gray,
                     fontWeight = if (!checked) FontWeight.Bold else FontWeight.Normal
                 )
@@ -105,7 +110,7 @@ fun SignUp(nav: NavHostController, viewModel: AuthViewModel) {
                 Spacer(modifier = Modifier.width(12.dp))
 
                 Text(
-                    text = "Representative",
+                    text = t["representative"] ?: "Representative",
                     color = if (checked) MaterialTheme.colorScheme.primary else Color.Gray,
                     fontWeight = if (checked) FontWeight.Bold else FontWeight.Normal
                 )
@@ -117,8 +122,8 @@ fun SignUp(nav: NavHostController, viewModel: AuthViewModel) {
                 value = txtName,
                 onValueChange = { txtName = it },
                 modifier = Modifier.fillMaxWidth(),
-                label = { Text("Full Name") },
-                placeholder = { Text("John Doe") },
+                label = { Text(t["full_name"] ?: "Full Name") },
+                placeholder = { Text(t["name_placeholder"] ?: "John Doe") },
                 leadingIcon = {
                     Icon(imageVector = Icons.Default.Person, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
                 },
@@ -132,8 +137,8 @@ fun SignUp(nav: NavHostController, viewModel: AuthViewModel) {
                 value = txtEmail,
                 onValueChange = { txtEmail = it },
                 modifier = Modifier.fillMaxWidth(),
-                label = { Text("Email Address") },
-                placeholder = { Text("example@mail.com") },
+                label = { Text(t["email_address"] ?: "Email Address") },
+                placeholder = { Text(t["email_placeholder"] ?: "example@mail.com") },
                 leadingIcon = {
                     Icon(imageVector = Icons.Default.Email, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
                 },
@@ -147,7 +152,7 @@ fun SignUp(nav: NavHostController, viewModel: AuthViewModel) {
                 value = txtPas,
                 onValueChange = { txtPas = it },
                 modifier = Modifier.fillMaxWidth(),
-                label = { Text("Password") },
+                label = { Text(t["password"] ?: "Password") },
                 leadingIcon = {
                     Icon(imageVector = Icons.Default.Lock, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
                 },
@@ -168,7 +173,7 @@ fun SignUp(nav: NavHostController, viewModel: AuthViewModel) {
                 value = txtConfirmPas,
                 onValueChange = { txtConfirmPas = it },
                 modifier = Modifier.fillMaxWidth(),
-                label = { Text("Confirm Password") },
+                label = { Text(t["confirm_password"] ?: "Confirm Password") },
                 leadingIcon = {
                     Icon(imageVector = Icons.Default.Lock, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
                 },
@@ -190,12 +195,16 @@ fun SignUp(nav: NavHostController, viewModel: AuthViewModel) {
                     if (txtPas == txtConfirmPas) {
                         val newUser = User(0, txtName, txtEmail, txtPas, role, "Free", "", "")
                         viewModel.signUp(newUser) {
+                            val now = SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault()).format(Date())
                             sharedPreferences.edit().apply {
                                 putBoolean("is_logged_in", true)
                                 putString("email", txtEmail)
+                                putString("created_at", now)
+                                putString("last_updated", now)
                                 viewModel.user?.let {
                                     putInt("user_id", it.id)
                                     putString("user_name", it.name)
+                                    putString("user_role", it.role)
                                 }
                                 apply()
                             }
@@ -219,7 +228,7 @@ fun SignUp(nav: NavHostController, viewModel: AuthViewModel) {
                         strokeWidth = 2.dp
                     )
                 } else {
-                    Text(text = "Sign Up", fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                    Text(text = t["sign_up"] ?: "Sign Up", fontSize = 18.sp, fontWeight = FontWeight.Bold)
                 }
             }
 
@@ -229,9 +238,9 @@ fun SignUp(nav: NavHostController, viewModel: AuthViewModel) {
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.Center
             ) {
-                Text(text = "Already have an account? ", color = Color.Gray)
+                Text(text = t["already_have_account"] ?: "Already have an account? ", color = Color.Gray)
                 Text(
-                    text = "Log In",
+                    text = t["log_in"] ?: "Log In",
                     color = MaterialTheme.colorScheme.primary,
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier.clickable {

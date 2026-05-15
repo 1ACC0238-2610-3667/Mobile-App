@@ -25,11 +25,13 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import android.content.Context
 import com.appsmoviles.splitly.R
+import com.appsmoviles.splitly.util.LocalTranslation
 
 @Composable
 fun Drawer(nav: NavHostController, onCloseDrawer: () -> Unit, onLogOut: () -> Unit) {
     val context = LocalContext.current
     val sharedPreferences = remember { context.getSharedPreferences("splitly_prefs", Context.MODE_PRIVATE) }
+    val t = LocalTranslation.current
 
     val navBackStackEntry by nav.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
@@ -63,13 +65,13 @@ fun Drawer(nav: NavHostController, onCloseDrawer: () -> Unit, onLogOut: () -> Un
             Spacer(modifier = Modifier.height(16.dp))
             
             Text(
-                text = "Splitly",
+                text = t["app_title"] ?: "Splitly",
                 fontSize = 24.sp,
                 fontWeight = FontWeight.ExtraBold,
                 color = MaterialTheme.colorScheme.primary
             )
             Text(
-                text = "Manage your expenses easily",
+                text = t["app_subtitle"] ?: "Manage your expenses easily",
                 fontSize = 14.sp,
                 color = Color.Gray
             )
@@ -80,11 +82,11 @@ fun Drawer(nav: NavHostController, onCloseDrawer: () -> Unit, onLogOut: () -> Un
         Spacer(modifier = Modifier.height(16.dp))
 
         val menuItems = listOf(
-            DrawerItem("Dashboard", "Dashboard", Icons.Rounded.Dashboard),
-            DrawerItem("Households", "Households", Icons.Rounded.House),
-            DrawerItem("Expenses", "Expenses", Icons.Rounded.Wallet),
-            DrawerItem("Contributions", "Contributions", Icons.Rounded.BarChart),
-            DrawerItem("Settings", "Settings", Icons.Rounded.Settings)
+            DrawerItem(t["dashboard"] ?: "Dashboard", "Dashboard", Icons.Rounded.Dashboard),
+            DrawerItem(t["households"] ?: "Households", "Households", Icons.Rounded.House),
+            DrawerItem(t["expenses"] ?: "Expenses", "Expenses", Icons.Rounded.Wallet),
+            DrawerItem(t["contributions"] ?: "Contributions", "Contributions", Icons.Rounded.BarChart),
+            DrawerItem(t["settings"] ?: "Settings", "Settings", Icons.Rounded.Settings)
         )
 
         menuItems.forEach { item ->
@@ -132,7 +134,7 @@ fun Drawer(nav: NavHostController, onCloseDrawer: () -> Unit, onLogOut: () -> Un
         NavigationDrawerItem(
             label = { 
                 Text(
-                    text = "Log Out",
+                    text = t["log_out"] ?: "Log Out",
                     color = MaterialTheme.colorScheme.error,
                     modifier = Modifier.padding(start = 8.dp)
                 ) 
