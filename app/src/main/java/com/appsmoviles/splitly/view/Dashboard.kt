@@ -43,6 +43,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavHostController
+import com.appsmoviles.splitly.utils.LocalTranslations // <-- Ajusta este import según tu paquete
 import com.appsmoviles.splitly.viewmodel.dashboard.DashboardViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -50,6 +51,8 @@ import java.util.Locale
 
 @Composable
 fun Dashboard(viewModel: DashboardViewModel, context: Context, nav: NavHostController) {
+    // Obtenemos el mapa de traducciones actual inyectado
+    val strings = LocalTranslations.current
 
     LaunchedEffect(Unit) {
         viewModel.viewModelScope.launch(Dispatchers.IO) {
@@ -76,20 +79,19 @@ fun Dashboard(viewModel: DashboardViewModel, context: Context, nav: NavHostContr
             ) {
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        text = "Bienvenido de nuevo",
+                        text = strings["welcome_back"] ?: "",
                         fontSize = 24.sp,
                         fontWeight = FontWeight.Bold,
                         color = Color(0xFF0F172A)
                     )
                     Text(
-                        text = "Administra tu hogar con claridad",
+                        text = strings["manage_household"] ?: "",
                         fontSize = 14.sp,
                         color = Color(0xFF64748B)
                     )
                 }
 
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    // Plan Tag
                     Surface(
                         color = Color(0xFFEEF2FF),
                         shape = RoundedCornerShape(12.dp)
@@ -131,7 +133,7 @@ fun Dashboard(viewModel: DashboardViewModel, context: Context, nav: NavHostContr
                 shadowElevation = 1.dp
             ) {
                 Text(
-                    text = "Hogar Primario: ${viewModel.householdId}",
+                    text = "${strings["primary_household"]}: ${viewModel.householdId}",
                     modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
                     fontSize = 11.sp,
                     color = Color(0xFF64748B)
@@ -145,14 +147,14 @@ fun Dashboard(viewModel: DashboardViewModel, context: Context, nav: NavHostContr
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 MetricCard(
-                    title = "Total Miembros",
+                    title = strings["total_members"] ?: "",
                     value = viewModel.totalMembers.toString(),
                     icon = Icons.Default.People,
                     modifier = Modifier.weight(1f)
                 )
                 MetricCard(
-                    title = "Gastos Totales",
-                    value = String.format(Locale.US, "S/ %,.1f", viewModel.totalExpenses),
+                    title = strings["total_expenses"] ?: "",
+                    value = String.format(Locale.US, "S/ %,.2f", viewModel.totalExpenses),
                     icon = Icons.Default.AccountBalanceWallet,
                     modifier = Modifier.weight(1f)
                 )
@@ -161,8 +163,8 @@ fun Dashboard(viewModel: DashboardViewModel, context: Context, nav: NavHostContr
             Spacer(modifier = Modifier.height(12.dp))
 
             MetricCard(
-                title = "Aportes Totales",
-                value = String.format(Locale.US, "S/ %,.0f", viewModel.totalContributions),
+                title = strings["total_contributions"] ?: "",
+                value = String.format(Locale.US, "S/ %,.2f", viewModel.totalContributions),
                 icon = Icons.Default.BarChart,
                 modifier = Modifier.fillMaxWidth()
             )
@@ -171,16 +173,16 @@ fun Dashboard(viewModel: DashboardViewModel, context: Context, nav: NavHostContr
 
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 ActionCard(
-                    title = "Gestionar Miembros",
-                    subtitle = "Administra los miembros del hogar",
+                    title = strings["manage_members_title"] ?: "",
+                    subtitle = strings["manage_members_subtitle"] ?: "",
                     icon = Icons.Default.People,
                     backgroundColor = Color(0xFF6366F1), // Indigo
                     modifier = Modifier.weight(1f),
                     onClick = { nav.navigate("members") }
                 )
                 ActionCard(
-                    title = "Gestionar Gastos",
-                    subtitle = "Administra los gastos del hogar",
+                    title = strings["manage_expenses_title"] ?: "",
+                    subtitle = strings["manage_expenses_subtitle"] ?: "",
                     icon = Icons.Default.ReceiptLong,
                     backgroundColor = Color(0xFFF59E0B), // Amber
                     modifier = Modifier.weight(1f),
@@ -192,16 +194,16 @@ fun Dashboard(viewModel: DashboardViewModel, context: Context, nav: NavHostContr
 
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 ActionCard(
-                    title = "Gestionar Aportes",
-                    subtitle = "Administra los aportes del hogar",
+                    title = strings["manage_contributions_title"] ?: "",
+                    subtitle = strings["manage_contributions_subtitle"] ?: "",
                     icon = Icons.Default.Payments,
                     backgroundColor = Color(0xFF8B5CF6), // Violet
                     modifier = Modifier.weight(1f),
                     onClick = { nav.navigate("contributions") }
                 )
                 ActionCard(
-                    title = "Gestionar Hogares",
-                    subtitle = "Crea y administra tus hogares",
+                    title = strings["manage_households_title"] ?: "",
+                    subtitle = strings["manage_households_subtitle"] ?: "",
                     icon = Icons.Default.Home,
                     backgroundColor = Color(0xFF10B981), // Emerald
                     modifier = Modifier.weight(1f),
@@ -210,12 +212,13 @@ fun Dashboard(viewModel: DashboardViewModel, context: Context, nav: NavHostContr
                     }
                 )
             }
-            
+
             Spacer(modifier = Modifier.height(20.dp))
         }
     }
 }
 
+// ... (MetricCard y ActionCard se mantienen exactamente iguales que antes)
 @Composable
 fun MetricCard(
     title: String,
