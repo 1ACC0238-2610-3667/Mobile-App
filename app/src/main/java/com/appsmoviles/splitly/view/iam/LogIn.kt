@@ -1,18 +1,39 @@
 package com.appsmoviles.splitly.view.iam
 
 import android.content.Context
-import android.content.SharedPreferences
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -33,7 +54,7 @@ import com.appsmoviles.splitly.viewmodel.AuthViewModel
 fun LogIn(nav: NavHostController, viewModel: AuthViewModel) {
     val context = LocalContext.current
     val sharedPreferences = remember { context.getSharedPreferences("splitly_prefs", Context.MODE_PRIVATE) }
-    
+
     var txtUser by remember { mutableStateOf(sharedPreferences.getString("email", "") ?: "") }
     var txtPas by remember { mutableStateOf("") }
     var isPasswordVisible by remember { mutableStateOf(false) }
@@ -117,14 +138,13 @@ fun LogIn(nav: NavHostController, viewModel: AuthViewModel) {
 
             Button(
                 onClick = {
-                    viewModel.login(txtUser, txtPas) {
-                        // Save session to SharedPreferences
+                    viewModel.login(context, txtUser, txtPas) {
                         sharedPreferences.edit().apply {
                             putBoolean("is_logged_in", true)
                             putString("email", txtUser)
                             viewModel.user?.let {
                                 putInt("user_id", it.id)
-                                putString("user_name", it.name)
+                                putString("user_name", it.name ?: "")
                             }
                             apply()
                         }

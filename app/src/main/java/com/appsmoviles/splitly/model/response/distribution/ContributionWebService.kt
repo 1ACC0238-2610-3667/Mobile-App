@@ -1,4 +1,3 @@
-// Ubicación: com.appsmoviles.splitly.model.response.distribution.ContributionWebService.kt
 package com.appsmoviles.splitly.model.response.distribution
 
 import com.appsmoviles.splitly.model.beans.distribution.ContributionDto

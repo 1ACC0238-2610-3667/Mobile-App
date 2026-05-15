@@ -1,4 +1,3 @@
-// Ubicación: com.appsmoviles.splitly.viewmodel.AuthViewModel.kt
 package com.appsmoviles.splitly.viewmodel
 
 import android.content.Context
@@ -14,55 +13,40 @@ import com.appsmoviles.splitly.model.client.RetrofitClient
 import kotlinx.coroutines.launch
 import org.json.JSONObject
 
-class AuthViewModel(private val context: Context) : ViewModel() {
+class AuthViewModel : ViewModel() {
 
-    var user by mutableStateOf<User?>(null)
-        private set
-
+    var user: User? by mutableStateOf(null)
     var isLoading by mutableStateOf(false)
-        private set
+    var errorMessage: String? by mutableStateOf(null)
 
-    var errorMessage by mutableStateOf<String?>(null)
-        private set
-
-    private val prefs = context.applicationContext.getSharedPreferences("splitly_prefs", Context.MODE_PRIVATE)
-
-    fun login(email: String, pas: String, onSuccess: () -> Unit) {
+    fun login(context: Context, email: String, pas: String, onSuccess: () -> Unit) {
         viewModelScope.launch {
             isLoading = true
             errorMessage = null
             try {
-                // Requiere que RetrofitClient.initialize(context) haya sido invocado en la App o MainActivity
                 val request = LoginRequest(email, pas)
+
                 val response = RetrofitClient.webService.login(request)
 
                 if (response.isSuccessful && response.body() != null) {
                     val authData = response.body()!!
+                    user = authData
 
-                    // Almacenamos el token de inmediato para que las peticiones subsecuentes lo utilicen
-                    prefs.edit().putString("token", authData.token).apply()
-
-                    // Solicitamos el perfil completo del usuario para consolidar variables (Réplica de log-in.vue)
-                    val profileResponse = RetrofitClient.userWebService.getUserProfile(authData.id)
-                    val resolvedUser = if (profileResponse.isSuccessful && profileResponse.body() != null) {
-                        profileResponse.body()!!
-                    } else {
-                        authData
-                    }
-
-                    user = resolvedUser
-                    val finalHouseholdId = resolvedUser.householdId ?: authData.householdId ?: ""
-                    val finalPlan = (resolvedUser.plan ?: authData.plan ?: "FREE").uppercase()
-                    val finalRole = resolvedUser.role ?: authData.role ?: "Representative"
-
-                    // Persistimos el estado global serializado para consumo de los dashboards
+                    val prefs = context.getSharedPreferences("splitly_prefs", Context.MODE_PRIVATE)
                     val editor = prefs.edit()
+
+                    editor.putString("token", authData.token)
+
+                    val finalHouseholdId = authData.houseHoldId ?: ""
+                    val finalPlan = (authData.plan ?: "FREE").uppercase()
+                    val finalRole = authData.role ?: "Representative"
+
                     editor.putString("householdId", finalHouseholdId)
 
                     val userJson = JSONObject().apply {
-                        put("id", resolvedUser.id)
-                        put("name", resolvedUser.name ?: "Usuario")
-                        put("email", resolvedUser.email ?: email)
+                        put("id", authData.id)
+                        put("name", authData.name ?: "Usuario")
+                        put("email", authData.email ?: email)
                         put("role", finalRole)
                         put("plan", finalPlan)
                         put("householdId", finalHouseholdId)
@@ -83,13 +67,13 @@ class AuthViewModel(private val context: Context) : ViewModel() {
         }
     }
 
-    fun signUp(newUser: User, onSuccess: () -> Unit) {
+    fun signUp(context: Context, newUser: User, onSuccess: () -> Unit) {
         viewModelScope.launch {
             isLoading = true
             errorMessage = null
             try {
                 val response = RetrofitClient.webService.signUp(newUser)
-                if (response.isSuccessful) {
+                if (response.isSuccessful && response.body() != null) {
                     user = response.body()
                     onSuccess()
                 } else {
@@ -103,5 +87,7 @@ class AuthViewModel(private val context: Context) : ViewModel() {
         }
     }
 
-    fun clearError() { errorMessage = null }
+    fun clearError() {
+        errorMessage = null
+    }
 }

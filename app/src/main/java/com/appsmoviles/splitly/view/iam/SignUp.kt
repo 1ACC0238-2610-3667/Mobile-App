@@ -64,7 +64,6 @@ fun SignUp(nav: NavHostController, viewModel: AuthViewModel) {
     var isPasswordVisible by remember { mutableStateOf(false) }
     var isConfirmPasswordVisible by remember { mutableStateOf(false) }
 
-    //For Role Switcher
     var checked by remember { mutableStateOf(false) }
 
     Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
@@ -209,18 +208,17 @@ fun SignUp(nav: NavHostController, viewModel: AuthViewModel) {
             Button(
                 onClick = {
                     if (txtPas == txtConfirmPas) {
-                        // Corrección: Mapeo posicional explícito mediante argumentos nombrados
                         val newUser = User(
                             id = 0,
                             name = txtName,
                             email = txtEmail,
                             token = "",
-                            householdId = "",
+                            houseHoldId = "",
                             role = role,
                             plan = "Free",
                             isNewUser = true
                         )
-                        viewModel.signUp(newUser) {
+                        viewModel.signUp(context, newUser) {
                             sharedPreferences.edit().apply {
                                 putBoolean("is_logged_in", true)
                                 putString("email", txtEmail)
@@ -234,8 +232,6 @@ fun SignUp(nav: NavHostController, viewModel: AuthViewModel) {
                                 popUpTo("SignUp") { inclusive = true }
                             }
                         }
-                    } else {
-                        // Bloque else original
                     }
                 },
                 enabled = !viewModel.isLoading,
@@ -271,7 +267,7 @@ fun SignUp(nav: NavHostController, viewModel: AuthViewModel) {
                     }
                 )
             }
-            
+
             Spacer(modifier = Modifier.height(32.dp))
         }
     }
