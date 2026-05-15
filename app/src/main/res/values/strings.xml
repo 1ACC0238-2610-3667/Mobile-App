@@ -1,3 +1,7 @@
 <resources>
     <string name="app_name">Splitly</string>
+    <string name="welcome_message">Welcome back, %1$s!</string>
+    <string name="dashboard_subtitle">Manage your household and finances</string>
+    <string name="plan_label">Plan: %1$s</string>
+    <string name="household_label">Household ID: %1$s</string>
 </resources>
