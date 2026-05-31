@@ -7,7 +7,7 @@ import retrofit2.converter.gson.GsonConverterFactory
 object RetrofitClient {
     val webService: WebService by lazy {
         Retrofit.Builder()
-            .baseUrl("https://harmonix-mobile-backend.onrender.com/api/v1/")
+            .baseUrl("http://192.168.1.17:5070/api/v1/")
             .addConverterFactory(GsonConverterFactory.create())
             .build()
             .create(WebService::class.java)

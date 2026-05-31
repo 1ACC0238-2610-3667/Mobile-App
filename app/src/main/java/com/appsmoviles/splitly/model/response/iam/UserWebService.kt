@@ -1,4 +1,3 @@
-// Ubicación: com.appsmoviles.splitly.model.response.iam.UserWebService.kt
 package com.appsmoviles.splitly.model.response.iam
 
 import com.appsmoviles.splitly.model.beans.iam.User

@@ -23,6 +23,8 @@ import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -44,12 +46,15 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
 import androidx.navigation.NavHostController
 import com.appsmoviles.splitly.R
-import com.appsmoviles.splitly.model.beans.iam.User
+import com.appsmoviles.splitly.model.beans.iam.SignUpRequest
 import com.appsmoviles.splitly.viewmodel.AuthViewModel
+
 
 @Composable
 fun SignUp(nav: NavHostController, viewModel: AuthViewModel) {
@@ -65,6 +70,8 @@ fun SignUp(nav: NavHostController, viewModel: AuthViewModel) {
     var isConfirmPasswordVisible by remember { mutableStateOf(false) }
 
     var checked by remember { mutableStateOf(false) }
+
+    var txtHouseholdId by remember { mutableStateOf("") }
 
     Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
         Column(
@@ -128,6 +135,20 @@ fun SignUp(nav: NavHostController, viewModel: AuthViewModel) {
                     text = "Representative",
                     color = if (checked) MaterialTheme.colorScheme.primary else Color.Gray,
                     fontWeight = if (checked) FontWeight.Bold else FontWeight.Normal
+                )
+            }
+
+            if (!checked) {
+                Spacer(modifier = Modifier.height(16.dp))
+
+                OutlinedTextField(
+                    value = txtHouseholdId,
+                    onValueChange = { txtHouseholdId = it },
+                    modifier = Modifier.fillMaxWidth(),
+                    label = { Text("Household ID (Invitation Code)") },
+                    placeholder = { Text("HH-XXXXXXXXX") },
+                    shape = RoundedCornerShape(12.dp),
+                    singleLine = true
                 )
             }
 
@@ -208,30 +229,25 @@ fun SignUp(nav: NavHostController, viewModel: AuthViewModel) {
             Button(
                 onClick = {
                     if (txtPas == txtConfirmPas) {
-                        val newUser = User(
-                            id = 0,
+                        val request = SignUpRequest(
                             name = txtName,
                             email = txtEmail,
-                            token = "",
-                            houseHoldId = "",
+                            password = txtPas,
                             role = role,
-                            plan = "Free",
-                            isNewUser = true
+                            plan = 0,
+                            householdId = if (!checked) txtHouseholdId else ""
                         )
-                        viewModel.signUp(context, newUser) {
-                            sharedPreferences.edit().apply {
-                                putBoolean("is_logged_in", true)
-                                putString("email", txtEmail)
-                                viewModel.user?.let {
-                                    putInt("user_id", it.id)
-                                    putString("user_name", it.name ?: txtName)
+
+                        viewModel.signUp(context, request) {
+                            viewModel.login(context, txtEmail, txtPas) {
+                                // Al tener éxito el login, navegamos al Main
+                                nav.navigate("Main") {
+                                    popUpTo("SignUp") { inclusive = true }
                                 }
-                                apply()
-                            }
-                            nav.navigate("Main") {
-                                popUpTo("SignUp") { inclusive = true }
                             }
                         }
+                    } else {
+                        viewModel.errorMessage = "Las contraseñas no coinciden"
                     }
                 },
                 enabled = !viewModel.isLoading,
@@ -269,6 +285,42 @@ fun SignUp(nav: NavHostController, viewModel: AuthViewModel) {
             }
 
             Spacer(modifier = Modifier.height(32.dp))
+        }
+    }
+    if (viewModel.errorMessage != null) {
+        Dialog(onDismissRequest = { viewModel.clearError() }) {
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                shape = RoundedCornerShape(16.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+            ) {
+                Column(
+                    modifier = Modifier.padding(24.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(
+                        text = "Sign Up Failed",
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.error
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Text(
+                        text = viewModel.errorMessage ?: "An unknown error occurred.",
+                        textAlign = TextAlign.Center,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Spacer(modifier = Modifier.height(24.dp))
+                    Button(
+                        onClick = { viewModel.clearError() },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text("Try Again")
+                    }
+                }
+            }
         }
     }
 }

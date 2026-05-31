@@ -1,4 +1,3 @@
-// Ubicación: com.appsmoviles.splitly.model.beans.distribution.ContributionDto.kt
 package com.appsmoviles.splitly.model.beans.distribution
 
 import com.google.gson.annotations.SerializedName

@@ -51,7 +51,6 @@ import java.util.Locale
 
 @Composable
 fun Dashboard(viewModel: DashboardViewModel, context: Context, nav: NavHostController) {
-    // Obtenemos el mapa de traducciones actual inyectado
     val strings = LocalTranslations.current
 
     LaunchedEffect(Unit) {
@@ -218,7 +217,6 @@ fun Dashboard(viewModel: DashboardViewModel, context: Context, nav: NavHostContr
     }
 }
 
-// ... (MetricCard y ActionCard se mantienen exactamente iguales que antes)
 @Composable
 fun MetricCard(
     title: String,
