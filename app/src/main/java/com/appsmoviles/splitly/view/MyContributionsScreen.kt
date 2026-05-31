@@ -47,6 +47,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.viewModelScope
 import com.appsmoviles.splitly.model.beans.distribution.EnrichedContribution
+import com.appsmoviles.splitly.utils.LocalTranslations
 import com.appsmoviles.splitly.viewmodel.MyContributionsViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -54,6 +55,7 @@ import java.util.Locale
 
 @Composable
 fun MyContributionsScreen(viewModel: MyContributionsViewModel, context: Context) {
+    val strings = LocalTranslations.current
 
     var showIncomeDialog by remember { mutableStateOf(false) }
     var incomeInput by remember { mutableStateOf("") }
@@ -82,7 +84,7 @@ fun MyContributionsScreen(viewModel: MyContributionsViewModel, context: Context)
                 .padding(16.dp)
         ) {
             Text(
-                text = "Mis Aportes",
+                text = strings["my_contributions_title"] ?: "",
                 fontSize = 28.sp,
                 fontWeight = FontWeight.Bold,
                 color = Color(0xFF0F172A)
@@ -101,7 +103,7 @@ fun MyContributionsScreen(viewModel: MyContributionsViewModel, context: Context)
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Column {
-                        Text("Sueldo Declarado", fontSize = 12.sp, color = Color.Gray)
+                        Text(strings["declared_salary"] ?: "", fontSize = 12.sp, color = Color.Gray)
                         Text(
                             text = String.format(Locale.US, "S/ %,.2f", viewModel.currentIncome),
                             fontSize = 20.sp,
@@ -113,7 +115,7 @@ fun MyContributionsScreen(viewModel: MyContributionsViewModel, context: Context)
                         incomeInput = viewModel.currentIncome.toString()
                         showIncomeDialog = true
                     }) {
-                        Icon(Icons.Default.Edit, contentDescription = "Editar Sueldo", tint = Color(0xFF6366F1))
+                        Icon(Icons.Default.Edit, contentDescription = strings["edit_salary_button"] ?: "", tint = Color(0xFF6366F1))
                     }
                 }
             }
@@ -128,9 +130,9 @@ fun MyContributionsScreen(viewModel: MyContributionsViewModel, context: Context)
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                        SummaryItem("Asignado", viewModel.totalAssigned, Color(0xFF0F172A))
-                        SummaryItem("Pagado", viewModel.totalPaid, Color(0xFF10B981))
-                        SummaryItem("Pendiente", viewModel.totalPending, Color(0xFFEF4444))
+                        SummaryItem(strings["assigned"] ?: "", viewModel.totalAssigned, Color(0xFF0F172A))
+                        SummaryItem(strings["paid"] ?: "", viewModel.totalPaid, Color(0xFF10B981))
+                        SummaryItem(strings["pending"] ?: "", viewModel.totalPending, Color(0xFFEF4444))
                     }
 
                     Spacer(modifier = Modifier.height(16.dp))
@@ -143,7 +145,7 @@ fun MyContributionsScreen(viewModel: MyContributionsViewModel, context: Context)
                         trackColor = Color(0xFFE2E8F0)
                     )
                     Text(
-                        text = "${(progress * 100).toInt()}% Pagado",
+                        text = "${(progress * 100).toInt()}% ${strings["paid"] ?: ""}",
                         fontSize = 12.sp,
                         color = Color.Gray,
                         modifier = Modifier.align(Alignment.End).padding(top = 4.dp)
@@ -153,10 +155,10 @@ fun MyContributionsScreen(viewModel: MyContributionsViewModel, context: Context)
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            Text("Cuotas Pendientes", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Color(0xFF0F172A))
+            Text(strings["pending_quotas_title"] ?: "", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Color(0xFF0F172A))
             Spacer(modifier = Modifier.height(8.dp))
             if (viewModel.pendingList.isEmpty()) {
-                Text("¡Al día! No tienes deudas pendientes.", color = Color.Gray, fontSize = 14.sp)
+                Text(strings["no_pending_debt"] ?: "", color = Color.Gray, fontSize = 14.sp)
             } else {
                 viewModel.pendingList.forEach { quota ->
                     QuotaCard(
@@ -174,10 +176,10 @@ fun MyContributionsScreen(viewModel: MyContributionsViewModel, context: Context)
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            Text("Historial de Pagos", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Color(0xFF0F172A))
+            Text(strings["payment_history_title"] ?: "", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Color(0xFF0F172A))
             Spacer(modifier = Modifier.height(8.dp))
             if (viewModel.historyList.isEmpty()) {
-                Text("Aún no tienes pagos registrados.", color = Color.Gray, fontSize = 14.sp)
+                Text(strings["no_payments_registered"] ?: "", color = Color.Gray, fontSize = 14.sp)
             } else {
                 viewModel.historyList.forEach { quota ->
                     QuotaCard(quota = quota, isPending = false)
@@ -196,15 +198,15 @@ fun MyContributionsScreen(viewModel: MyContributionsViewModel, context: Context)
                 color = Color.White
             ) {
                 Column(modifier = Modifier.padding(24.dp)) {
-                    Text("Actualizar Sueldo", fontSize = 18.sp, fontWeight = FontWeight.Bold)
-                    Text("Tu sueldo se usa para calcular gastos proporcionales.", fontSize = 12.sp, color = Color.Gray)
+                    Text(strings["update_salary_title"] ?: "", fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                    Text(strings["salary_description"] ?: "", fontSize = 12.sp, color = Color.Gray)
                     Spacer(modifier = Modifier.height(16.dp))
 
                     OutlinedTextField(
                         value = incomeInput,
                         onValueChange = { incomeInput = it },
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                        label = { Text("Monto") },
+                        label = { Text(strings["amount_label"] ?: "") },
                         singleLine = true,
                         modifier = Modifier.fillMaxWidth()
                     )
@@ -213,14 +215,14 @@ fun MyContributionsScreen(viewModel: MyContributionsViewModel, context: Context)
 
                     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
                         TextButton(onClick = { showIncomeDialog = false }) {
-                            Text("Cancelar", color = Color.Gray)
+                            Text(strings["cancel_button"] ?: "", color = Color.Gray)
                         }
                         Button(onClick = {
                             val newAmount = incomeInput.toDoubleOrNull() ?: 0.0
                             viewModel.updateIncome(context, newAmount)
                             showIncomeDialog = false
                         }) {
-                            Text("Guardar")
+                            Text(strings["save_button"] ?: "")
                         }
                     }
                 }
@@ -235,15 +237,15 @@ fun MyContributionsScreen(viewModel: MyContributionsViewModel, context: Context)
                 color = Color.White
             ) {
                 Column(modifier = Modifier.padding(24.dp)) {
-                    Text("Realizar Pago", fontSize = 18.sp, fontWeight = FontWeight.Bold)
-                    Text("Vas a pagar: ${selectedQuotaToPay!!.concept}", fontSize = 14.sp, color = Color.Gray)
+                    Text(strings["make_payment_title"] ?: "", fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                    Text("${strings["payment_for"] ?: ""} ${selectedQuotaToPay!!.concept}", fontSize = 14.sp, color = Color.Gray)
                     Spacer(modifier = Modifier.height(16.dp))
 
                     OutlinedTextField(
                         value = payAmountInput,
                         onValueChange = { payAmountInput = it },
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                        label = { Text("Monto a pagar") },
+                        label = { Text(strings["payment_amount_label"] ?: "") },
                         singleLine = true,
                         modifier = Modifier.fillMaxWidth()
                     )
@@ -252,14 +254,14 @@ fun MyContributionsScreen(viewModel: MyContributionsViewModel, context: Context)
 
                     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
                         TextButton(onClick = { showPayDialog = false }) {
-                            Text("Cancelar", color = Color.Gray)
+                            Text(strings["cancel_button"] ?: "", color = Color.Gray)
                         }
                         Button(onClick = {
                             val amount = payAmountInput.toDoubleOrNull() ?: 0.0
                             viewModel.payQuota(context, selectedQuotaToPay!!.memberContributionId, amount)
                             showPayDialog = false
                         }) {
-                            Text("Pagar")
+                            Text(strings["pay_button"] ?: "")
                         }
                     }
                 }
@@ -283,6 +285,8 @@ fun SummaryItem(title: String, amount: Double, color: Color) {
 
 @Composable
 fun QuotaCard(quota: EnrichedContribution, isPending: Boolean, onPayClick: () -> Unit = {}) {
+    val strings = LocalTranslations.current
+    
     Surface(
         color = Color.White,
         shape = RoundedCornerShape(12.dp),
@@ -303,9 +307,9 @@ fun QuotaCard(quota: EnrichedContribution, isPending: Boolean, onPayClick: () ->
             Column(modifier = Modifier.weight(1f)) {
                 Text(quota.concept, fontSize = 16.sp, fontWeight = FontWeight.Bold, color = Color(0xFF0F172A))
                 if (isPending) {
-                    Text("Vence: ${quota.deadline.take(10)}", fontSize = 12.sp, color = Color.Gray)
+                    Text("${strings["deadline_label"] ?: ""} ${quota.deadline.take(10)}", fontSize = 12.sp, color = Color.Gray)
                 } else {
-                    Text("Pagado: ${quota.payedAt.take(10)}", fontSize = 12.sp, color = Color.Gray)
+                    Text("${strings["paid_date_label"] ?: ""} ${quota.payedAt.take(10)}", fontSize = 12.sp, color = Color.Gray)
                 }
             }
 
@@ -321,7 +325,7 @@ fun QuotaCard(quota: EnrichedContribution, isPending: Boolean, onPayClick: () ->
                     Spacer(modifier = Modifier.height(4.dp))
                     if (quota.status.equals("Review", ignoreCase = true)) {
                         Text(
-                            text = "En Revisión",
+                            text = strings["review_status"] ?: "",
                             fontSize = 12.sp,
                             fontWeight = FontWeight.Bold,
                             color = Color(0xFFF59E0B),
@@ -335,7 +339,7 @@ fun QuotaCard(quota: EnrichedContribution, isPending: Boolean, onPayClick: () ->
                             modifier = Modifier.height(32.dp),
                             contentPadding = PaddingValues(horizontal = 12.dp, vertical = 0.dp)
                         ) {
-                            Text("Pagar", fontSize = 12.sp)
+                            Text(strings["pay_button"] ?: "", fontSize = 12.sp)
                         }
                     }
                 }

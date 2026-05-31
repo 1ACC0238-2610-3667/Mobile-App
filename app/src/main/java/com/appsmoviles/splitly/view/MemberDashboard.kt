@@ -36,6 +36,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavHostController
+import com.appsmoviles.splitly.utils.LocalTranslations
 import com.appsmoviles.splitly.viewmodel.dashboard.DashboardViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -43,6 +44,7 @@ import java.util.Locale
 
 @Composable
 fun MemberDashboard(viewModel: DashboardViewModel, context: Context, nav: NavHostController) {
+    val strings = LocalTranslations.current
     LaunchedEffect(Unit) {
         viewModel.viewModelScope.launch(Dispatchers.IO) {
             viewModel.loadInternalData(context)
@@ -61,15 +63,14 @@ fun MemberDashboard(viewModel: DashboardViewModel, context: Context, nav: NavHos
                 .verticalScroll(rememberScrollState())
                 .padding(20.dp)
         ) {
-            // CABECERA (Ahora carga el nombre correctamente)
             Text(
-                text = "Hello, ${viewModel.userName}",
+                text = "${strings["hello_greeting"] ?: ""} ${viewModel.userName}",
                 fontSize = 28.sp,
                 fontWeight = FontWeight.ExtraBold,
                 color = Color(0xFF0F172A)
             )
             Text(
-                text = "Household: ${viewModel.householdId}",
+                text = "${strings["household_label"] ?: ""} ${viewModel.householdId}",
                 fontSize = 14.sp,
                 color = Color(0xFF64748B)
             )
@@ -83,7 +84,7 @@ fun MemberDashboard(viewModel: DashboardViewModel, context: Context, nav: NavHos
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Column(modifier = Modifier.padding(24.dp)) {
-                    Text("Total Pending Debt", color = Color(0xFF94A3B8), fontSize = 14.sp)
+                    Text(strings["total_pending_debt"] ?: "", color = Color(0xFF94A3B8), fontSize = 14.sp)
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
                         text = String.format(Locale.US, "S/ %,.2f", viewModel.myPendingDebt),
@@ -98,7 +99,7 @@ fun MemberDashboard(viewModel: DashboardViewModel, context: Context, nav: NavHos
                     val progress = if (totalAssigned > 0) (viewModel.myPaidDebt / totalAssigned).toFloat() else 0f
 
                     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                        Text("Progress", color = Color.White, fontSize = 12.sp)
+                        Text(strings["progress_label"] ?: "", color = Color.White, fontSize = 12.sp)
                         Text("${(progress * 100).toInt()}%", color = Color(0xFF10B981), fontSize = 12.sp, fontWeight = FontWeight.Bold)
                     }
                     Spacer(modifier = Modifier.height(8.dp))
@@ -121,17 +122,17 @@ fun MemberDashboard(viewModel: DashboardViewModel, context: Context, nav: NavHos
 
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                 UrgencyCard(
-                    title = "Overdue Bills",
+                    title = strings["overdue_bills_title"] ?: "",
                     value = viewModel.overdueBillsCount.toString(),
-                    subtitle = "Action required",
+                    subtitle = strings["action_required"] ?: "",
                     icon = Icons.Default.Warning,
                     color = Color(0xFFEF4444),
                     modifier = Modifier.weight(1f)
                 )
                 UrgencyCard(
-                    title = "Next 7 Days",
+                    title = strings["next_7_days_title"] ?: "",
                     value = viewModel.upcomingBillsCount.toString(),
-                    subtitle = "Upcoming quotas",
+                    subtitle = strings["upcoming_quotas"] ?: "",
                     icon = Icons.Default.DateRange,
                     color = Color(0xFFF59E0B),
                     modifier = Modifier.weight(1f)
@@ -139,21 +140,21 @@ fun MemberDashboard(viewModel: DashboardViewModel, context: Context, nav: NavHos
             }
 
             Spacer(modifier = Modifier.height(24.dp))
-            Text("Quick Actions", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Color(0xFF0F172A))
+            Text(strings["quick_actions_title"] ?: "", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Color(0xFF0F172A))
             Spacer(modifier = Modifier.height(12.dp))
 
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                 ActionCard(
-                    title = "My Quotas",
-                    subtitle = "View and pay",
+                    title = strings["my_quotas_card"] ?: "",
+                    subtitle = strings["view_and_pay"] ?: "",
                     icon = Icons.Default.Payments,
                     backgroundColor = Color(0xFF6366F1), // Indigo
                     modifier = Modifier.weight(1f),
                     onClick = { nav.navigate("my_contributions") }
                 )
                 ActionCard(
-                    title = "Household",
-                    subtitle = "Group details",
+                    title = strings["household_card"] ?: "",
+                    subtitle = strings["group_details"] ?: "",
                     icon = Icons.Default.Home,
                     backgroundColor = Color(0xFF10B981), // Emerald
                     modifier = Modifier.weight(1f),

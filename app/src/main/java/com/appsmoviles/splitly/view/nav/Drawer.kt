@@ -46,6 +46,7 @@ import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.appsmoviles.splitly.R
+import com.appsmoviles.splitly.utils.LocalTranslations
 import org.json.JSONObject
 import java.util.Locale
 
@@ -53,11 +54,12 @@ import java.util.Locale
 fun Drawer(nav: NavHostController, onCloseDrawer: () -> Unit, onLogOut: () -> Unit) {
     val context = LocalContext.current
     val sharedPreferences = remember { context.getSharedPreferences("splitly_prefs", Context.MODE_PRIVATE) }
+    val strings = LocalTranslations.current
 
     val navBackStackEntry by nav.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
 
-    var userName by remember { mutableStateOf("Usuario") }
+    var userName by remember { mutableStateOf(strings["user_default"] ?: "Usuario") }
     var userRole by remember { mutableStateOf("Member") }
 
     LaunchedEffect(Unit) {
@@ -120,18 +122,18 @@ fun Drawer(nav: NavHostController, onCloseDrawer: () -> Unit, onLogOut: () -> Un
 
         val menuItems = if (userRole.equals("Representative", ignoreCase = true) || userRole.equals("Admin", ignoreCase = true)) {
             listOf(
-                DrawerItem("Dashboard", "Main", Icons.Rounded.Dashboard),
-                DrawerItem("Households", "Households", Icons.Rounded.House),
-                DrawerItem("Expenses", "Expenses", Icons.Rounded.Wallet),
-                DrawerItem("Contributions", "Contributions", Icons.Rounded.BarChart),
-                DrawerItem("Settings", "Settings", Icons.Rounded.Settings)
+                DrawerItem(strings["dashboard_nav"] ?: "", "Main", Icons.Rounded.Dashboard),
+                DrawerItem(strings["households_nav"] ?: "", "Households", Icons.Rounded.House),
+                DrawerItem(strings["expenses_nav"] ?: "", "Expenses", Icons.Rounded.Wallet),
+                DrawerItem(strings["contributions_nav"] ?: "", "Contributions", Icons.Rounded.BarChart),
+                DrawerItem(strings["settings_nav"] ?: "", "Settings", Icons.Rounded.Settings)
             )
         } else {
             listOf(
-                DrawerItem("Dashboard", "Main", Icons.Rounded.Dashboard),
-                DrawerItem("My Quotas", "my_contributions", Icons.Rounded.Payments), // <-- Nueva vista del miembro
-                DrawerItem("Household", "household_details", Icons.Rounded.House),
-                DrawerItem("Settings", "Settings", Icons.Rounded.Settings)
+                DrawerItem(strings["dashboard_nav"] ?: "", "Main", Icons.Rounded.Dashboard),
+                DrawerItem(strings["my_quotas_nav"] ?: "", "my_contributions", Icons.Rounded.Payments), // <-- Nueva vista del miembro
+                DrawerItem(strings["household_nav"] ?: "", "household_details", Icons.Rounded.House),
+                DrawerItem(strings["settings_nav"] ?: "", "Settings", Icons.Rounded.Settings)
             )
         }
 
@@ -178,7 +180,7 @@ fun Drawer(nav: NavHostController, onCloseDrawer: () -> Unit, onLogOut: () -> Un
         Spacer(modifier = Modifier.height(16.dp))
 
         NavigationDrawerItem(
-            label = { Text(text = "Log Out", color = MaterialTheme.colorScheme.error, modifier = Modifier.padding(start = 8.dp)) },
+            label = { Text(text = strings["logout_button"] ?: "", color = MaterialTheme.colorScheme.error, modifier = Modifier.padding(start = 8.dp)) },
             selected = false,
             onClick = {
                 sharedPreferences.edit().clear().apply()

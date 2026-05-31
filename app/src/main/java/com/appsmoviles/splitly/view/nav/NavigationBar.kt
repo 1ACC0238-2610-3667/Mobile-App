@@ -19,9 +19,11 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
+import com.appsmoviles.splitly.utils.LocalTranslations
 
 @Composable
 fun AppNavigationBar(navController: NavHostController, onOpenDrawer: () -> Unit) {
+    val strings = LocalTranslations.current
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
 
@@ -35,7 +37,7 @@ fun AppNavigationBar(navController: NavHostController, onOpenDrawer: () -> Unit)
             selected = dashboardSelected,
             label = {
                 Text(
-                    text = "Dashboard",
+                    text = strings["dashboard_nav"] ?: "",
                     fontSize = 12.sp,
                     fontWeight = if (dashboardSelected) FontWeight.Bold else FontWeight.Normal
                 )
@@ -66,7 +68,7 @@ fun AppNavigationBar(navController: NavHostController, onOpenDrawer: () -> Unit)
             selected = false,
             label = {
                 Text(
-                    text = "More",
+                    text = strings["more_nav"] ?: "",
                     fontSize = 12.sp,
                     color = Color.Gray
                 )
@@ -89,7 +91,7 @@ fun AppNavigationBar(navController: NavHostController, onOpenDrawer: () -> Unit)
             selected = settingsSelected,
             label = {
                 Text(
-                    text = "Settings",
+                    text = strings["settings_nav"] ?: "",
                     fontSize = 12.sp,
                     fontWeight = if (settingsSelected) FontWeight.Bold else FontWeight.Normal
                 )
