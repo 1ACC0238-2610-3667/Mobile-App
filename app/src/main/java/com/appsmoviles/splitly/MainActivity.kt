@@ -8,18 +8,21 @@ import androidx.activity.viewModels
 import com.appsmoviles.splitly.ui.theme.SplitlyTheme
 import com.appsmoviles.splitly.view.nav.Navigator
 import com.appsmoviles.splitly.viewmodel.AuthViewModel
+import com.appsmoviles.splitly.viewmodel.dashboard.DashboardViewModel
 
 class MainActivity : ComponentActivity() {
 
+    private val dashboardViewModel by viewModels<DashboardViewModel>()
+    private val authViewModel by viewModels<AuthViewModel>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        val authViewModel by viewModels<AuthViewModel>()
-
         super.onCreate(savedInstanceState)
+
+
         enableEdgeToEdge()
         setContent {
             SplitlyTheme {
-                Navigator(authViewModel)
+                Navigator(authViewModel, dashboardViewModel)
             }
         }
     }

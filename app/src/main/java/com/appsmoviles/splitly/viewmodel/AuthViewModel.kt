@@ -1,5 +1,6 @@
 package com.appsmoviles.splitly.viewmodel
 
+import android.content.Context
 import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -10,54 +11,73 @@ import com.appsmoviles.splitly.model.beans.iam.LoginRequest
 import com.appsmoviles.splitly.model.beans.iam.User
 import com.appsmoviles.splitly.model.client.RetrofitClient
 import kotlinx.coroutines.launch
+import org.json.JSONObject
 
 class AuthViewModel : ViewModel() {
 
-    var user by mutableStateOf<User?>(null)
-        private set
-
+    var user: User? by mutableStateOf(null)
     var isLoading by mutableStateOf(false)
-        private set
+    var errorMessage: String? by mutableStateOf(null)
 
-    var errorMessage by mutableStateOf<String?>(null)
-        private set
-
-    fun login(email: String, pas: String, onSuccess: () -> Unit) {
-        Log.d("EMAIL", "$email")
-        Log.d("PASS", "$pas")
-
+    fun login(context: Context, email: String, pas: String, onSuccess: () -> Unit) {
         viewModelScope.launch {
             isLoading = true
             errorMessage = null
             try {
                 val request = LoginRequest(email, pas)
+
                 val response = RetrofitClient.webService.login(request)
-                Log.d("Response","$response")
-                if (response.isSuccessful) {
-                    user = response.body()
+
+                if (response.isSuccessful && response.body() != null) {
+                    val authData = response.body()!!
+                    user = authData
+
+                    val prefs = context.getSharedPreferences("splitly_prefs", Context.MODE_PRIVATE)
+                    val editor = prefs.edit()
+
+                    editor.putString("token", authData.token)
+
+                    val finalHouseholdId = authData.houseHoldId ?: ""
+                    val finalPlan = (authData.plan ?: "FREE").uppercase()
+                    val finalRole = authData.role ?: "Representative"
+
+                    editor.putString("householdId", finalHouseholdId)
+
+                    val userJson = JSONObject().apply {
+                        put("id", authData.id)
+                        put("name", authData.name ?: "Usuario")
+                        put("email", authData.email ?: email)
+                        put("role", finalRole)
+                        put("plan", finalPlan)
+                        put("householdId", finalHouseholdId)
+                    }
+                    editor.putString("user", userJson.toString())
+                    editor.apply()
+
                     onSuccess()
                 } else {
-                    errorMessage = "Login failed: ${response.code()}"
+                    errorMessage = "Error de autenticación: ${response.code()}"
                 }
             } catch (e: Exception) {
-                errorMessage = "Error: ${e.localizedMessage}"
+                errorMessage = "Error de red: ${e.localizedMessage}"
+                Log.e("AuthViewModel", "Excepción en Login", e)
             } finally {
                 isLoading = false
             }
         }
     }
 
-    fun signUp(newUser: User, onSuccess: () -> Unit) {
+    fun signUp(context: Context, newUser: User, onSuccess: () -> Unit) {
         viewModelScope.launch {
             isLoading = true
             errorMessage = null
             try {
                 val response = RetrofitClient.webService.signUp(newUser)
-                if (response.isSuccessful) {
+                if (response.isSuccessful && response.body() != null) {
                     user = response.body()
                     onSuccess()
                 } else {
-                    errorMessage = "Sign up failed: ${response.code()}"
+                    errorMessage = "Error en el registro: ${response.code()}"
                 }
             } catch (e: Exception) {
                 errorMessage = "Error: ${e.localizedMessage}"

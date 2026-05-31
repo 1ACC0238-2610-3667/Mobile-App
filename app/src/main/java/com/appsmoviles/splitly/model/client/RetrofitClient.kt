@@ -4,8 +4,7 @@ import com.appsmoviles.splitly.model.response.WebService
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
-object RetrofitClient{
-
+object RetrofitClient {
     val webService: WebService by lazy {
         Retrofit.Builder()
             .baseUrl("https://harmonix-mobile-backend.onrender.com/api/v1/")
@@ -13,5 +12,4 @@ object RetrofitClient{
             .build()
             .create(WebService::class.java)
     }
-
 }
