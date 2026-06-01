@@ -48,10 +48,12 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.navigation.NavHostController
 import com.appsmoviles.splitly.R
+import com.appsmoviles.splitly.utils.LocalTranslations
 import com.appsmoviles.splitly.viewmodel.AuthViewModel
 
 @Composable
 fun LogIn(nav: NavHostController, viewModel: AuthViewModel) {
+    val strings = LocalTranslations.current
     val context = LocalContext.current
     val sharedPreferences = remember { context.getSharedPreferences("splitly_prefs", Context.MODE_PRIVATE) }
 
@@ -86,14 +88,14 @@ fun LogIn(nav: NavHostController, viewModel: AuthViewModel) {
             Spacer(modifier = Modifier.height(16.dp))
 
             Text(
-                text = "Welcome Back",
+                text = strings["login_title"] ?: "",
                 fontSize = 28.sp,
                 fontWeight = FontWeight.ExtraBold,
                 color = MaterialTheme.colorScheme.primary
             )
 
             Text(
-                text = "Login to your account",
+                text = strings["login_subtitle"] ?: "",
                 fontSize = 16.sp,
                 color = Color.Gray
             )
@@ -104,8 +106,8 @@ fun LogIn(nav: NavHostController, viewModel: AuthViewModel) {
                 value = txtUser,
                 onValueChange = { txtUser = it },
                 modifier = Modifier.fillMaxWidth(),
-                label = { Text("Email Address") },
-                placeholder = { Text("example@mail.com") },
+                label = { Text(strings["email_label"] ?: "") },
+                placeholder = { Text(strings["email_placeholder"] ?: "") },
                 leadingIcon = {
                     Icon(imageVector = Icons.Default.Person, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
                 },
@@ -119,7 +121,7 @@ fun LogIn(nav: NavHostController, viewModel: AuthViewModel) {
                 value = txtPas,
                 onValueChange = { txtPas = it },
                 modifier = Modifier.fillMaxWidth(),
-                label = { Text("Password") },
+                label = { Text(strings["password_label"] ?: "") },
                 leadingIcon = {
                     Icon(imageVector = Icons.Default.Lock, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
                 },
@@ -166,7 +168,7 @@ fun LogIn(nav: NavHostController, viewModel: AuthViewModel) {
                         strokeWidth = 2.dp
                     )
                 } else {
-                    Text(text = "Log In", fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                    Text(text = strings["login_button"] ?: "", fontSize = 18.sp, fontWeight = FontWeight.Bold)
                 }
             }
 
@@ -176,9 +178,9 @@ fun LogIn(nav: NavHostController, viewModel: AuthViewModel) {
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.Center
             ) {
-                Text(text = "Are you registered? ", color = Color.Gray)
+                Text(text = strings["no_account_text"] ?: "", color = Color.Gray)
                 Text(
-                    text = "Sign Up Now",
+                    text = strings["signup_link"] ?: "",
                     color = MaterialTheme.colorScheme.primary,
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier.clickable {
@@ -204,14 +206,14 @@ fun LogIn(nav: NavHostController, viewModel: AuthViewModel) {
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Text(
-                        text = "Authentication Failed",
+                        text = strings["auth_failed_title"] ?: "",
                         fontSize = 20.sp,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.error
                     )
                     Spacer(modifier = Modifier.height(16.dp))
                     Text(
-                        text = viewModel.errorMessage ?: "An unknown error occurred.",
+                        text = viewModel.errorMessage ?: strings["auth_unknown_error"] ?: "",
                         textAlign = TextAlign.Center,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -220,7 +222,7 @@ fun LogIn(nav: NavHostController, viewModel: AuthViewModel) {
                         onClick = { viewModel.clearError() },
                         modifier = Modifier.fillMaxWidth()
                     ) {
-                        Text("Try Again")
+                        Text(strings["try_again_button"] ?: "")
                     }
                 }
             }

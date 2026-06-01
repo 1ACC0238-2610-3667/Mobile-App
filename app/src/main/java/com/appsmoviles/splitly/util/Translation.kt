@@ -4,6 +4,7 @@ import androidx.compose.runtime.staticCompositionLocalOf
 
 object Translations {
     val en = mapOf(
+        // Dashboard
         "welcome_back" to "Welcome Back",
         "manage_household" to "Manage your household clearly",
         "primary_household" to "Primary Household",
@@ -17,10 +18,92 @@ object Translations {
         "manage_contributions_title" to "Manage Contributions",
         "manage_contributions_subtitle" to "Manage household contributions",
         "manage_households_title" to "Manage Households",
-        "manage_households_subtitle" to "Create and manage your households"
+        "manage_households_subtitle" to "Create and manage your households",
+
+        // Login
+        "login_title" to "Welcome Back",
+        "login_subtitle" to "Login to your account",
+        "email_label" to "Email Address",
+        "email_placeholder" to "example@mail.com",
+        "password_label" to "Password",
+        "login_button" to "Log In",
+        "no_account_text" to "Are you registered?",
+        "signup_link" to "Sign Up Now",
+        "auth_failed_title" to "Authentication Failed",
+        "auth_unknown_error" to "An unknown error occurred.",
+        "try_again_button" to "Try Again",
+
+        // Sign Up
+        "signup_title" to "Create Account",
+        "signup_subtitle" to "Join Splitly and start sharing",
+        "member_role" to "Member",
+        "representative_role" to "Representative",
+        "household_id_label" to "Household ID (Invitation Code)",
+        "household_id_placeholder" to "HH-XXXXXXXXX",
+        "fullname_label" to "Full Name",
+        "fullname_placeholder" to "John Doe",
+        "confirm_password_label" to "Confirm Password",
+        "signup_button" to "Sign Up",
+        "have_account_text" to "Already have an account?",
+        "login_link" to "Log In",
+        "signup_failed_title" to "Sign Up Failed",
+        "passwords_not_match" to "Passwords do not match",
+
+        // My Contributions
+        "my_contributions_title" to "My Quotas",
+        "declared_salary" to "Declared Salary",
+        "edit_salary_button" to "Edit Salary",
+        "assigned" to "Assigned",
+        "paid" to "Paid",
+        "pending" to "Pending",
+        "paid_percentage" to "% Paid",
+        "pending_quotas_title" to "Pending Quotas",
+        "no_pending_debt" to "All paid! You have no pending debts.",
+        "payment_history_title" to "Payment History",
+        "no_payments_registered" to "You have no registered payments yet.",
+        "update_salary_title" to "Update Salary",
+        "salary_description" to "Your salary is used to calculate proportional expenses.",
+        "amount_label" to "Amount",
+        "cancel_button" to "Cancel",
+        "save_button" to "Save",
+        "make_payment_title" to "Make Payment",
+        "payment_for" to "You will pay for:",
+        "payment_amount_label" to "Payment Amount",
+        "pay_button" to "Pay",
+        "deadline_label" to "Expires:",
+        "paid_date_label" to "Paid:",
+        "review_status" to "Under Review",
+
+        // Member Dashboard
+        "hello_greeting" to "Hello,",
+        "household_label" to "Household:",
+        "total_pending_debt" to "Total Pending Debt",
+        "progress_label" to "Progress",
+        "overdue_bills_title" to "Overdue Bills",
+        "action_required" to "Action required",
+        "next_7_days_title" to "Next 7 Days",
+        "upcoming_quotas" to "Upcoming quotas",
+        "quick_actions_title" to "Quick Actions",
+        "my_quotas_card" to "My Quotas",
+        "view_and_pay" to "View and pay",
+        "household_card" to "Household",
+        "group_details" to "Group details",
+
+        // Navigation
+        "dashboard_nav" to "Dashboard",
+        "more_nav" to "More",
+        "settings_nav" to "Settings",
+        "households_nav" to "Households",
+        "expenses_nav" to "Expenses",
+        "contributions_nav" to "Contributions",
+        "my_quotas_nav" to "My Quotas",
+        "household_nav" to "Household",
+        "logout_button" to "Log Out",
+        "user_default" to "User"
     )
 
     val es = mapOf(
+        // Dashboard
         "welcome_back" to "Bienvenido de nuevo",
         "manage_household" to "Administra tu hogar con claridad",
         "primary_household" to "Hogar Primario",
@@ -34,7 +117,88 @@ object Translations {
         "manage_contributions_title" to "Gestionar Aportes",
         "manage_contributions_subtitle" to "Administra los aportes del hogar",
         "manage_households_title" to "Gestionar Hogares",
-        "manage_households_subtitle" to "Crea y administra tus hogares"
+        "manage_households_subtitle" to "Crea y administra tus hogares",
+
+        // Login
+        "login_title" to "Bienvenido de nuevo",
+        "login_subtitle" to "Inicia sesión en tu cuenta",
+        "email_label" to "Correo Electrónico",
+        "email_placeholder" to "ejemplo@correo.com",
+        "password_label" to "Contraseña",
+        "login_button" to "Iniciar Sesión",
+        "no_account_text" to "¿No tienes cuenta?",
+        "signup_link" to "Regístrate Ahora",
+        "auth_failed_title" to "Autenticación Fallida",
+        "auth_unknown_error" to "Ocurrió un error desconocido.",
+        "try_again_button" to "Intentar Nuevamente",
+
+        // Sign Up
+        "signup_title" to "Crear Cuenta",
+        "signup_subtitle" to "Únete a Splitly y comienza a compartir",
+        "member_role" to "Miembro",
+        "representative_role" to "Representante",
+        "household_id_label" to "ID del Hogar (Código de Invitación)",
+        "household_id_placeholder" to "HH-XXXXXXXXX",
+        "fullname_label" to "Nombre Completo",
+        "fullname_placeholder" to "Juan Pérez",
+        "confirm_password_label" to "Confirmar Contraseña",
+        "signup_button" to "Registrarse",
+        "have_account_text" to "¿Ya tienes cuenta?",
+        "login_link" to "Inicia Sesión",
+        "signup_failed_title" to "Registro Fallido",
+        "passwords_not_match" to "Las contraseñas no coinciden",
+
+        // My Contributions
+        "my_contributions_title" to "Mis Aportes",
+        "declared_salary" to "Sueldo Declarado",
+        "edit_salary_button" to "Editar Sueldo",
+        "assigned" to "Asignado",
+        "paid" to "Pagado",
+        "pending" to "Pendiente",
+        "paid_percentage" to "% Pagado",
+        "pending_quotas_title" to "Cuotas Pendientes",
+        "no_pending_debt" to "¡Al día! No tienes deudas pendientes.",
+        "payment_history_title" to "Historial de Pagos",
+        "no_payments_registered" to "Aún no tienes pagos registrados.",
+        "update_salary_title" to "Actualizar Sueldo",
+        "salary_description" to "Tu sueldo se usa para calcular gastos proporcionales.",
+        "amount_label" to "Monto",
+        "cancel_button" to "Cancelar",
+        "save_button" to "Guardar",
+        "make_payment_title" to "Realizar Pago",
+        "payment_for" to "Vas a pagar:",
+        "payment_amount_label" to "Monto a pagar",
+        "pay_button" to "Pagar",
+        "deadline_label" to "Vence:",
+        "paid_date_label" to "Pagado:",
+        "review_status" to "En Revisión",
+
+        // Member Dashboard
+        "hello_greeting" to "Hola,",
+        "household_label" to "Hogar:",
+        "total_pending_debt" to "Deuda Total Pendiente",
+        "progress_label" to "Progreso",
+        "overdue_bills_title" to "Facturas Vencidas",
+        "action_required" to "Acción requerida",
+        "next_7_days_title" to "Próximos 7 Días",
+        "upcoming_quotas" to "Cuotas próximas",
+        "quick_actions_title" to "Acciones Rápidas",
+        "my_quotas_card" to "Mis Cuotas",
+        "view_and_pay" to "Ver y pagar",
+        "household_card" to "Hogar",
+        "group_details" to "Detalles del grupo",
+
+        // Navigation
+        "dashboard_nav" to "Panel",
+        "more_nav" to "Más",
+        "settings_nav" to "Configuración",
+        "households_nav" to "Hogares",
+        "expenses_nav" to "Gastos",
+        "contributions_nav" to "Aportes",
+        "my_quotas_nav" to "Mis Cuotas",
+        "household_nav" to "Hogar",
+        "logout_button" to "Cerrar Sesión",
+        "user_default" to "Usuario"
     )
 }
 

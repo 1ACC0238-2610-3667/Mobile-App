@@ -18,11 +18,17 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-
         enableEdgeToEdge()
         setContent {
             SplitlyTheme {
-                Navigator(authViewModel, dashboardViewModel)
+                val rootNavController = androidx.navigation.compose.rememberNavController()
+
+                Navigator(
+                    authViewModel = authViewModel,
+                    dashboardViewModel = dashboardViewModel,
+                    context = this,
+                    navController = rootNavController
+                )
             }
         }
     }
