@@ -16,11 +16,13 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.appsmoviles.splitly.view.nav.AppNavigationBar
 import com.appsmoviles.splitly.view.nav.Drawer
+import com.appsmoviles.splitly.viewmodel.SettingsViewModel
 import com.appsmoviles.splitly.viewmodel.dashboard.DashboardViewModel
 import kotlinx.coroutines.launch
 
 @Composable
-fun MainScreen(rootNav: NavHostController, dashboardViewModel: DashboardViewModel) {
+fun MainScreen(rootNav: NavHostController,
+               dashboardViewModel: DashboardViewModel, settingsViewModel: SettingsViewModel) {
     val navController = rememberNavController()
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
@@ -67,7 +69,7 @@ fun MainScreen(rootNav: NavHostController, dashboardViewModel: DashboardViewMode
                 composable("Expenses") { Expenses() }
                 composable("Households") { Households() }
                 composable("Members") { Members() }
-                composable("Settings") { Settings() }
+                composable("Settings") { Settings(settingsViewModel, context, navController) }
                 composable("Contributions") { Contributions() }
             }
         }

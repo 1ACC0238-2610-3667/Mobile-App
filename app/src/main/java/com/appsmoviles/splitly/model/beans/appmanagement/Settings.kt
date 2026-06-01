@@ -5,5 +5,7 @@ data class Settings(
     var userId: Int,
     var language: String,
     var darkMode: Boolean,
-    var notificationEnabled: Boolean
+    var notificationEnabled: Boolean,
+    var createdAt: String,
+    var updatedAt: String
 )

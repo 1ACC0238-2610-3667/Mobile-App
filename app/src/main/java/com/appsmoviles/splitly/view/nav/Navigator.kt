@@ -8,10 +8,11 @@ import com.appsmoviles.splitly.view.MainScreen
 import com.appsmoviles.splitly.view.iam.LogIn
 import com.appsmoviles.splitly.view.iam.SignUp
 import com.appsmoviles.splitly.viewmodel.AuthViewModel
+import com.appsmoviles.splitly.viewmodel.SettingsViewModel
 import com.appsmoviles.splitly.viewmodel.dashboard.DashboardViewModel
 
 @Composable
-fun Navigator(authViewModel: AuthViewModel, dashboardViewModel: DashboardViewModel) {
+fun Navigator(authViewModel: AuthViewModel, dashboardViewModel: DashboardViewModel, settingsViewModel: SettingsViewModel) {
 
     val rememberScreen = rememberNavController()
 
@@ -19,6 +20,6 @@ fun Navigator(authViewModel: AuthViewModel, dashboardViewModel: DashboardViewMod
         composable("LogIn") { LogIn(rememberScreen, authViewModel) }
         composable("SignUp") { SignUp(rememberScreen, authViewModel) }
         // Pasamos el DashboardViewModel a MainScreen
-        composable("Main") { MainScreen(rememberScreen, dashboardViewModel) }
+        composable("Main") { MainScreen(rememberScreen, dashboardViewModel, settingsViewModel) }
     }
 }
