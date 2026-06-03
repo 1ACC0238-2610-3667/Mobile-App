@@ -5,66 +5,93 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.appsmoviles.splitly.model.client.RetrofitClient
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.json.JSONObject
 
 class DashboardViewModel : ViewModel() {
 
     var userName by mutableStateOf("Usuario")
-    var userPlan by mutableStateOf("FREE")
-    var householdId by mutableStateOf("")
-    var totalMembers by mutableStateOf(0)
-    var totalExpenses by mutableStateOf(0.0)
-    var totalContributions by mutableStateOf(0.0)
+    var totalBillsCount by mutableStateOf(0)
+    var totalBillsAmount by mutableStateOf(0.0)
+    var totalHouseholdsCount by mutableStateOf(0)
+    var totalMembersCount by mutableStateOf(0)
     var isLoading by mutableStateOf(true)
+    var errorMessage by mutableStateOf<String?>(null)
 
-    suspend fun loadInternalData(context: Context) {
-        isLoading = true
-        val prefs = context.getSharedPreferences("splitly_prefs", Context.MODE_PRIVATE)
-
-        val rawToken = prefs.getString("token", "") ?: ""
-        val token = "Bearer $rawToken"
-        householdId = prefs.getString("householdId", "") ?: ""
-
-        try {
+    fun loadSummary(context: Context) {
+        viewModelScope.launch(Dispatchers.Main) {
+            isLoading = true
+            errorMessage = null
+            
+            val prefs = context.getSharedPreferences("splitly_prefs", Context.MODE_PRIVATE)
+            val rawToken = prefs.getString("token", "") ?: ""
+            val token = "Bearer $rawToken"
+            
             val userJsonStr = prefs.getString("user", null)
+            var userId = -1
             if (!userJsonStr.isNullOrEmpty()) {
-                val json = JSONObject(userJsonStr)
-                userName = json.optString("name", "Usuario")
-                userPlan = json.optString("plan", "FREE").uppercase()
+                try {
+                    val json = JSONObject(userJsonStr)
+                    userName = json.optString("name", "Usuario")
+                    userId = json.optInt("id", -1)
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
             }
-        } catch (e: Exception) {
-            e.printStackTrace()
-        }
 
-        if (householdId.isNotEmpty() && rawToken.isNotEmpty()) {
-            try {
-                // TOTAL MIEMBROS
-                val membersRes = RetrofitClient.webService.getMembers(token, householdId)
-                if (membersRes.isSuccessful && membersRes.body() != null) {
-                    val membersList = membersRes.body()!!
-                    totalMembers = membersList.filter { it.houseHoldId == householdId }.size
+            if (userId != -1 && rawToken.isNotEmpty()) {
+                try {
+                    val householdsRes = withContext(Dispatchers.IO) {
+                        RetrofitClient.householdWebService.getHouseHoldByRepresentativeId(userId)
+                    }
+
+                    if (householdsRes.isSuccessful && householdsRes.body() != null) {
+                        val householdsList = householdsRes.body()!!
+                        totalHouseholdsCount = householdsList.size
+                        
+                        var billsCount = 0
+                        var billsAmount = 0.0
+                        var membersCount = 0
+
+                        for (household in householdsList) {
+                            val hId = household.id
+                            
+                            // Get Members
+                            val membersRes = withContext(Dispatchers.IO) {
+                                RetrofitClient.householdMember.getHouseholdMembersByHouseholdId(hId)
+                            }
+                            if (membersRes.isSuccessful && membersRes.body() != null) {
+                                membersCount += membersRes.body()!!.size
+                            }
+
+                            // Get Bills
+                            val billsRes = withContext(Dispatchers.IO) {
+                                RetrofitClient.webService.getBills(token, hId)
+                            }
+                            if (billsRes.isSuccessful && billsRes.body() != null) {
+                                val bills = billsRes.body()!!
+                                billsCount += bills.size
+                                billsAmount += bills.sumOf { it.amount }
+                            }
+                        }
+                        
+                        totalMembersCount = membersCount
+                        totalBillsCount = billsCount
+                        totalBillsAmount = billsAmount
+                    } else {
+                        errorMessage = "Failed to load households"
+                    }
+                } catch (e: Exception) {
+                    errorMessage = "Error: ${e.message}"
                 }
-
-                // GASTOS TOTALES
-                val billsRes = RetrofitClient.webService.getBills(token, householdId)
-                if (billsRes.isSuccessful && billsRes.body() != null) {
-                    val billsList = billsRes.body()!!
-                    totalExpenses = billsList.sumOf { it.amount }
-                }
-
-                // APORTES TOTALES
-                val contRes = RetrofitClient.webService.getContributions(token, householdId)
-                if (contRes.isSuccessful && contRes.body() != null) {
-                    val contList = contRes.body()!!
-                    totalContributions = contList.sumOf { it.amount }
-                }
-
-            } catch (e: Exception) {
-                e.printStackTrace()
+            } else {
+                errorMessage = "User not logged in"
             }
+            isLoading = false
         }
-
-        isLoading = false
     }
 }
