@@ -1,8 +1,225 @@
 package com.appsmoviles.splitly.view
 
-import androidx.compose.runtime.Composable
+import android.content.Context
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import com.appsmoviles.splitly.model.beans.householdmanagement.Household
+import com.appsmoviles.splitly.viewmodel.HouseholdViewModel
+import org.json.JSONObject
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun Households(viewModel: HouseholdViewModel, context: Context) {
+    val prefs = context.getSharedPreferences("splitly_prefs", Context.MODE_PRIVATE)
+    val userJsonStr = prefs.getString("user", null)
+    var userId = -1
+    if (!userJsonStr.isNullOrEmpty()) {
+        userId = JSONObject(userJsonStr).optInt("id", -1)
+    }
+
+    var showDialog by remember { mutableStateOf(false) }
+    var selectedHousehold by remember { mutableStateOf<Household?>(null) }
+
+    LaunchedEffect(Unit) {
+        if (userId != -1) {
+            viewModel.getHouseholdsByRepresentativeId(userId)
+        }
+    }
+
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("My Households", fontWeight = FontWeight.Bold) },
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White)
+            )
+        },
+        floatingActionButton = {
+            FloatingActionButton(
+                onClick = {
+                    selectedHousehold = null
+                    showDialog = true
+                },
+                containerColor = Color(0xFF6366F1),
+                contentColor = Color.White
+            ) {
+                Icon(Icons.Default.Add, contentDescription = "Add Household")
+            }
+        },
+        containerColor = Color(0xFFF8FAFC)
+    ) { paddingValues ->
+        Box(modifier = Modifier.padding(paddingValues).fillMaxSize()) {
+            if (viewModel.isLoading) {
+                CircularProgressIndicator(modifier = Modifier.align(Alignment.Center), color = Color(0xFF6366F1))
+            } else if (viewModel.households.isEmpty()) {
+                Text(
+                    text = "No households found. Create one!",
+                    modifier = Modifier.align(Alignment.Center),
+                    color = Color.Gray
+                )
+            } else {
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize().padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    items(viewModel.households) { household ->
+                        HouseholdItem(
+                            household = household,
+                            onEdit = {
+                                selectedHousehold = household
+                                showDialog = true
+                            },
+                            onDelete = {
+                                viewModel.deleteHousehold(household.id, userId)
+                            }
+                        )
+                    }
+                }
+            }
+
+            if (viewModel.errorMessage != null) {
+                Snackbar(
+                    modifier = Modifier.padding(16.dp).align(Alignment.BottomCenter),
+                    containerColor = Color.Red,
+                    contentColor = Color.White
+                ) {
+                    Text(viewModel.errorMessage!!)
+                }
+            }
+        }
+    }
+
+    if (showDialog) {
+        HouseholdDialog(
+            household = selectedHousehold,
+            userId = userId,
+            onDismiss = { showDialog = false },
+            onConfirm = { name, description, currency ->
+                if (selectedHousehold == null) {
+                    val newHousehold = Household(
+                        id = "", // Server generates this
+                        name = name,
+                        representativeId = userId,
+                        currency = currency,
+                        description = description,
+                        memberCount = 1,
+                        startDate = "" // Server handles this
+                    )
+                    viewModel.createHousehold(newHousehold)
+                } else {
+                    val updated = selectedHousehold!!.copy(
+                        name = name,
+                        description = description,
+                        currency = currency
+                    )
+                    viewModel.updateHouseholdById(updated.id, updated)
+                }
+                showDialog = false
+                // Refresh after a delay or based on auxHousehold change
+            }
+        )
+    }
+    
+    // Refresh list when a change occurs
+    LaunchedEffect(viewModel.auxHousehold) {
+        if (viewModel.auxHousehold != null) {
+            viewModel.getHouseholdsByRepresentativeId(userId)
+        }
+    }
+}
 
 @Composable
-fun Households(){
+fun HouseholdItem(household: Household, onEdit: () -> Unit, onDelete: () -> Unit) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+    ) {
+        Row(
+            modifier = Modifier.padding(16.dp).fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(text = household.name, fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Color(0xFF1E293B))
+                Text(text = household.description, fontSize = 14.sp, color = Color(0xFF64748B))
+                Text(text = "Currency: ${household.currency}", fontSize = 12.sp, color = Color(0xFF94A3B8))
+            }
+            Row {
+                IconButton(onClick = onEdit) {
+                    Icon(Icons.Default.Edit, contentDescription = "Edit", tint = Color(0xFF6366F1))
+                }
+                IconButton(onClick = onDelete) {
+                    Icon(Icons.Default.Delete, contentDescription = "Delete", tint = Color.Red)
+                }
+            }
+        }
+    }
+}
 
+@Composable
+fun HouseholdDialog(
+    household: Household?,
+    userId: Int,
+    onDismiss: () -> Unit,
+    onConfirm: (String, String, String) -> Unit
+) {
+    var name by remember { mutableStateOf(household?.name ?: "") }
+    var description by remember { mutableStateOf(household?.description ?: "") }
+    var currency by remember { mutableStateOf(household?.currency ?: "USD") }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(if (household == null) "Create Household" else "Edit Household") },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                OutlinedTextField(
+                    value = name,
+                    onValueChange = { name = it },
+                    label = { Text("Name") },
+                    modifier = Modifier.fillMaxWidth()
+                )
+                OutlinedTextField(
+                    value = description,
+                    onValueChange = { description = it },
+                    label = { Text("Description") },
+                    modifier = Modifier.fillMaxWidth()
+                )
+                OutlinedTextField(
+                    value = currency,
+                    onValueChange = { currency = it },
+                    label = { Text("Currency (e.g. USD, PEN)") },
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+        },
+        confirmButton = {
+            Button(
+                onClick = { onConfirm(name, description, currency) },
+                enabled = name.isNotBlank() && description.isNotBlank(),
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF6366F1))
+            ) {
+                Text("Confirm")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Cancel")
+            }
+        }
+    )
 }

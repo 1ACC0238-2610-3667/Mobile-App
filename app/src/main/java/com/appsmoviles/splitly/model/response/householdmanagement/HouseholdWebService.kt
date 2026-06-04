@@ -4,6 +4,7 @@ import com.appsmoviles.splitly.model.beans.householdmanagement.Household
 import com.appsmoviles.splitly.model.response.WebService
 import retrofit2.Response
 import retrofit2.http.Body
+import retrofit2.http.DELETE
 import retrofit2.http.GET
 import retrofit2.http.POST
 import retrofit2.http.PUT
@@ -32,4 +33,9 @@ interface HouseholdWebService: WebService {
     suspend fun createHouseHold(
         @Body household: Household
     ): Response<Household>
+
+    @DELETE("house_hold/{id}")
+    suspend fun deleteHouseHold(
+        @Path("id") id: String
+    ): Response<Unit>
 }

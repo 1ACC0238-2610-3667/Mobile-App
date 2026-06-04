@@ -28,9 +28,7 @@ class DashboardViewModel : ViewModel() {
             errorMessage = null
             
             val prefs = context.getSharedPreferences("splitly_prefs", Context.MODE_PRIVATE)
-            val rawToken = prefs.getString("token", "") ?: ""
-            val token = "Bearer $rawToken"
-            
+
             val userJsonStr = prefs.getString("user", null)
             var userId = -1
             if (!userJsonStr.isNullOrEmpty()) {
@@ -43,7 +41,7 @@ class DashboardViewModel : ViewModel() {
                 }
             }
 
-            if (userId != -1 && rawToken.isNotEmpty()) {
+            if (userId != -1) {
                 try {
                     val householdsRes = withContext(Dispatchers.IO) {
                         RetrofitClient.householdWebService.getHouseHoldByRepresentativeId(userId)
@@ -70,7 +68,7 @@ class DashboardViewModel : ViewModel() {
 
                             // Get Bills
                             val billsRes = withContext(Dispatchers.IO) {
-                                RetrofitClient.webService.getBills(token, hId)
+                                RetrofitClient.billWebService.getBillByHouseHoldId(hId)
                             }
                             if (billsRes.isSuccessful && billsRes.body() != null) {
                                 val bills = billsRes.body()!!

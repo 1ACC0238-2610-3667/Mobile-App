@@ -11,5 +11,5 @@ interface BillWebService : WebService {
     @GET("bills/byhouseholdId/{householdId}")
     suspend fun getBillByHouseHoldId(
         @Path("householdId") householdId: String
-    ) : Response<Bills>
+    ) : Response<List<Bills>>
 }

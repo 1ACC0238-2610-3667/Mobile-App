@@ -110,4 +110,25 @@ class HouseholdViewModel : ViewModel() {
         }
     }
 
+    fun deleteHousehold(id: String, representativeId: Int) {
+        viewModelScope.launch {
+            isLoading = true
+            errorMessage = null
+            try {
+                val response = withContext(Dispatchers.IO) {
+                    RetrofitClient.householdWebService.deleteHouseHold(id)
+                }
+                if (response.isSuccessful) {
+                    getHouseholdsByRepresentativeId(representativeId)
+                } else {
+                    errorMessage = "Error: ${response.code()}"
+                }
+            } catch (e: Exception) {
+                errorMessage = "Error: ${e.message}"
+            } finally {
+                isLoading = false
+            }
+        }
+    }
+
 }

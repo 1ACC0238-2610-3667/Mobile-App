@@ -29,12 +29,6 @@ interface WebService {
     @POST("authentication/sign-up")
     suspend fun signUp(@Body user: User): Response<User>
 
-    //DISTRIBUTION
-    @GET("bills")
-    suspend fun getBills(
-        @Header("Authorization") token: String,
-        @Query("householdId") householdId: String
-    ): Response<List<Bills>>
 
     @GET("contribution/byhouseholdid/{householdId}")
     suspend fun getContributions(
