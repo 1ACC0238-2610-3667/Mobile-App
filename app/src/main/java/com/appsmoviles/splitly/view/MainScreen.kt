@@ -17,7 +17,8 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.appsmoviles.splitly.view.nav.AppNavigationBar
 import com.appsmoviles.splitly.view.nav.Drawer
-import com.appsmoviles.splitly.viewmodel.HouseholdViewModel
+import com.appsmoviles.splitly.viewmodel.HouseholdMemberViewModel
+import com.appsmoviles.splitly.viewmodel.household.HouseholdViewModel
 import com.appsmoviles.splitly.viewmodel.SettingsViewModel
 import com.appsmoviles.splitly.viewmodel.dashboard.DashboardViewModel
 import kotlinx.coroutines.launch
@@ -25,7 +26,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun MainScreen(rootNav: NavHostController,
                dashboardViewModel: DashboardViewModel, settingsViewModel: SettingsViewModel,
-               householdViewModel: HouseholdViewModel, context: Context) {
+               householdViewModel: HouseholdViewModel, householdMemberViewModel: HouseholdMemberViewModel,context: Context) {
     val navController = rememberNavController()
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
@@ -69,7 +70,7 @@ fun MainScreen(rootNav: NavHostController,
                 composable("Dashboard") { Dashboard(dashboardViewModel, context, navController) }
                 composable("Expenses") { Expenses() }
                 composable("Households") { Households(householdViewModel, context) }
-                composable("Members") { Members() }
+                composable("Members") { Members(householdMemberViewModel, householdViewModel, context) }
                 composable("Settings") { Settings(settingsViewModel, context, navController) }
                 composable("Contributions") { Contributions() }
             }

@@ -6,7 +6,9 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.appsmoviles.splitly.model.beans.householdmanagement.HouseholdMember
+import com.appsmoviles.splitly.model.beans.householdmanagement.Invitation
 import com.appsmoviles.splitly.model.client.RetrofitClient
+import com.appsmoviles.splitly.viewmodel.household.HouseholdViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -19,32 +21,61 @@ class HouseholdMemberViewModel: ViewModel() {
 
     var householdMembers: MutableMap<String, ArrayList<HouseholdMember>> = mutableMapOf()
 
+    var invitationResponse: Invitation? by mutableStateOf(null)
+
 
     fun getHouseholdMembersByHouseholdId(viewModel: HouseholdViewModel, id: Int){
             viewModelScope.launch(Dispatchers.Main) {
                 isLoading = true
                 errorMessage = null
-                //In case the members view is the one to be
-                //accessed first by some weird or unknow reason
-                if (viewModel.households.isNullOrEmpty()){
-                    withContext(Dispatchers.IO){
-                        viewModel.getHouseholdsByRepresentativeId(id)
+                try {
+
+
+                    //In case the members view is the one to be
+                    //accessed first by some weird or unknow reason
+                    if (viewModel.households.isNullOrEmpty()) {
+                        withContext(Dispatchers.IO) {
+                            viewModel.getHouseholdsByRepresentativeId(id)
+                        }
+                    } else {
+                        val auxHouseholds = viewModel.households
+                        auxHouseholds.forEach {
+                            val auxHouseholdMembers = RetrofitClient
+                                .householdMemberWebService.getHouseholdMembersByHouseholdId(it!!.id) as ArrayList<HouseholdMember>
+                            householdMembers[it.id] = auxHouseholdMembers
+                        }
                     }
-                }else{
-                    val auxHouseholds = viewModel.households
-                    auxHouseholds.forEach {
-                        val auxHouseholdMembers = RetrofitClient
-                            .householdMemberWebService.getHouseholdMembersByHouseholdId(it!!.id) as ArrayList<HouseholdMember>
-                        householdMembers[it.id] = auxHouseholdMembers
-                    }
+                }catch (e: Exception){
+                    errorMessage = "Error: ${e.message}"
+                }finally {
+                    isLoading = false
                 }
             }
+    }
 
+    fun createInvitation(invitation: Invitation){
+        viewModelScope.launch(Dispatchers.Main) {
+            isLoading = true
+            errorMessage = null
 
+            try {
+                val response = withContext(Dispatchers.IO){
+                    RetrofitClient.invitationWebService.createInvitation(invitation)
+                }
 
-
-
-
+                if(response.isSuccessful && response.body() != null ){
+                     invitationResponse = response.body()!!
+                }else{
+                    errorMessage = "Error: ${response.code()} Message: ${response.message()}"
+                }
+            } catch (e: Exception) {
+                errorMessage = "Error: ${e.message}"
+            }finally {
+                isLoading = false
+            }
+        }
 
     }
+
+
 }

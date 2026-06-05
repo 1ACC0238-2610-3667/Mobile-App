@@ -1,4 +1,4 @@
-package com.appsmoviles.splitly.viewmodel
+package com.appsmoviles.splitly.viewmodel.household
 
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -71,7 +71,7 @@ class HouseholdViewModel : ViewModel() {
             errorMessage = null
             auxHousehold = null
             try {
-                val response = withContext(Dispatchers.IO){
+                val response = withContext(Dispatchers.IO) {
                     RetrofitClient.householdWebService.updateHouseHoldIdById(id, household)
                 }
 
@@ -93,7 +93,7 @@ class HouseholdViewModel : ViewModel() {
             errorMessage = null
             auxHousehold = null
             try {
-                val response = withContext(Dispatchers.IO){
+                val response = withContext(Dispatchers.IO) {
                     RetrofitClient.householdWebService.createHouseHold(household)
                 }
 

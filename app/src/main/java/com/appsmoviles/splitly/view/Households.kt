@@ -1,7 +1,6 @@
 package com.appsmoviles.splitly.view
 
 import android.content.Context
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -14,24 +13,18 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.appsmoviles.splitly.model.beans.householdmanagement.Household
-import com.appsmoviles.splitly.viewmodel.HouseholdViewModel
-import org.json.JSONObject
+import com.appsmoviles.splitly.model.client.CredentialsSessionManager
+import com.appsmoviles.splitly.viewmodel.household.HouseholdViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun Households(viewModel: HouseholdViewModel, context: Context) {
-    val prefs = context.getSharedPreferences("splitly_prefs", Context.MODE_PRIVATE)
-    val userJsonStr = prefs.getString("user", null)
-    var userId = -1
-    if (!userJsonStr.isNullOrEmpty()) {
-        userId = JSONObject(userJsonStr).optInt("id", -1)
-    }
 
+    val userId = CredentialsSessionManager.getUserId()
     var showDialog by remember { mutableStateOf(false) }
     var selectedHousehold by remember { mutableStateOf<Household?>(null) }
 
@@ -76,15 +69,15 @@ fun Households(viewModel: HouseholdViewModel, context: Context) {
                     modifier = Modifier.fillMaxSize().padding(16.dp),
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    items(viewModel.households) { household ->
+                    items(viewModel.households) { householdAux ->
                         HouseholdItem(
-                            household = household,
+                            household = householdAux!!,
                             onEdit = {
-                                selectedHousehold = household
+                                selectedHousehold = householdAux
                                 showDialog = true
                             },
                             onDelete = {
-                                viewModel.deleteHousehold(household.id, userId)
+                                viewModel.deleteHousehold(householdAux.id, userId)
                             }
                         )
                     }
@@ -143,7 +136,7 @@ fun Households(viewModel: HouseholdViewModel, context: Context) {
 }
 
 @Composable
-fun HouseholdItem(household: Household, onEdit: () -> Unit, onDelete: () -> Unit) {
+fun HouseholdItem(household: Household?, onEdit: () -> Unit, onDelete: () -> Unit) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(containerColor = Color.White),
@@ -155,8 +148,8 @@ fun HouseholdItem(household: Household, onEdit: () -> Unit, onDelete: () -> Unit
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Column(modifier = Modifier.weight(1f)) {
-                Text(text = household.name, fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Color(0xFF1E293B))
-                Text(text = household.description, fontSize = 14.sp, color = Color(0xFF64748B))
+                Text(text = household!!.name, fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Color(0xFF1E293B))
+                Text(text = household!!.description, fontSize = 14.sp, color = Color(0xFF64748B))
                 Text(text = "Currency: ${household.currency}", fontSize = 12.sp, color = Color(0xFF94A3B8))
             }
             Row {
