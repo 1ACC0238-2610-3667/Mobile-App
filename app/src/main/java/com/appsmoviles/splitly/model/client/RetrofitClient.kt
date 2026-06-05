@@ -34,4 +34,8 @@ object RetrofitClient {
     val billWebService: BillWebService by lazy {
         retrofit.create(BillWebService::class.java)
     }
+
+    val householdMemberWebService: HouseholdMemberWebService by lazy{
+        retrofit.create(HouseholdMemberWebService::class.java)
+    }
 }

@@ -16,7 +16,7 @@ class HouseholdViewModel : ViewModel() {
     var household: Household? by mutableStateOf(null)
     var isLoading by mutableStateOf(false)
     var errorMessage: String? by mutableStateOf(null)
-    var households: ArrayList<Household> by mutableStateOf(arrayListOf())
+    var households: ArrayList<Household?> by mutableStateOf(arrayListOf())
 
     var auxHousehold: Household? by mutableStateOf(null)
 
@@ -45,24 +45,24 @@ class HouseholdViewModel : ViewModel() {
     }
 
     fun getHouseholdsByRepresentativeId(id: Int){
-        viewModelScope.launch(Dispatchers.Main) {
-            isLoading = true
-            errorMessage = null
-            try {
-                val response = withContext(Dispatchers.IO) {
-                    RetrofitClient.householdWebService.getHouseHoldByRepresentativeId(id)
-                }
-                if (response.isSuccessful  && response.body() != null)
-                    households = response.body() as ArrayList<Household>
-                else
-                    errorMessage = "Error: ${response.code()}"
+            viewModelScope.launch(Dispatchers.Main) {
+                isLoading = true
+                errorMessage = null
+                try {
+                    val response = withContext(Dispatchers.IO) {
+                        RetrofitClient.householdWebService.getHouseHoldByRepresentativeId(id)
+                    }
+                    if (response.isSuccessful && response.body() != null)
+                        households = response.body() as ArrayList<Household?>
+                    else
+                        errorMessage = "Error: ${response.code()}"
 
-            }catch (e: Exception){
-                errorMessage = " Error: ${e.message}"
-            }finally {
-                isLoading = false
+                } catch (e: Exception) {
+                    errorMessage = " Error: ${e.message}"
+                } finally {
+                    isLoading = false
+                }
             }
-        }
     }
 
     fun updateHouseholdById(id: String, household: Household) {
