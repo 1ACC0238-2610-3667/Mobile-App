@@ -24,7 +24,7 @@ import com.appsmoviles.splitly.viewmodel.household.HouseholdViewModel
 @Composable
 fun Households(viewModel: HouseholdViewModel, context: Context) {
 
-    val userId = CredentialsSessionManager.getUserId()
+    val userId = CredentialsSessionManager.getIdFromUser()
     var showDialog by remember { mutableStateOf(false) }
     var selectedHousehold by remember { mutableStateOf<Household?>(null) }
 

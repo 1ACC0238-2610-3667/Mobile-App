@@ -6,6 +6,7 @@ import com.appsmoviles.splitly.model.response.distribution.BillWebService
 import com.appsmoviles.splitly.model.response.householdmanagement.HouseholdMemberWebService
 import com.appsmoviles.splitly.model.response.householdmanagement.HouseholdWebService
 import com.appsmoviles.splitly.model.response.householdmanagement.InvitationWebService
+import com.appsmoviles.splitly.model.response.iam.UserWebService
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
@@ -18,6 +19,10 @@ object RetrofitClient {
 
     val webService: WebService by lazy {
         retrofit.create(WebService::class.java)
+    }
+
+    val userWebService: UserWebService by lazy {
+        retrofit.create(UserWebService::class.java)
     }
 
     val settingsWebService: SettingsWebService by lazy {

@@ -7,19 +7,21 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.appsmoviles.splitly.model.beans.householdmanagement.HouseholdMember
 import com.appsmoviles.splitly.model.beans.householdmanagement.Invitation
+import com.appsmoviles.splitly.model.beans.iam.User
 import com.appsmoviles.splitly.model.client.RetrofitClient
 import com.appsmoviles.splitly.viewmodel.household.HouseholdViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.util.ArrayList
+import kotlin.collections.forEach
 
 class HouseholdMemberViewModel: ViewModel() {
 
     var isLoading by mutableStateOf(false)
     var errorMessage: String? by mutableStateOf(null)
 
-    var householdMembers: MutableMap<String, ArrayList<HouseholdMember>> = mutableMapOf()
+    var householdMembers: MutableMap<String, ArrayList<User?>> = mutableMapOf()
 
     var invitationResponse: Invitation? by mutableStateOf(null)
 
@@ -33,16 +35,22 @@ class HouseholdMemberViewModel: ViewModel() {
 
                     //In case the members view is the one to be
                     //accessed first by some weird or unknow reason
-                    if (viewModel.households.isNullOrEmpty()) {
+                    if (viewModel.households.isEmpty()) {
                         withContext(Dispatchers.IO) {
                             viewModel.getHouseholdsByRepresentativeId(id)
                         }
                     } else {
                         val auxHouseholds = viewModel.households
-                        auxHouseholds.forEach {
+                        auxHouseholds.forEach { households ->
+                            val usersProfileListPerHousehold: ArrayList<User?> by mutableStateOf(arrayListOf())
                             val auxHouseholdMembers = RetrofitClient
-                                .householdMemberWebService.getHouseholdMembersByHouseholdId(it!!.id) as ArrayList<HouseholdMember>
-                            householdMembers[it.id] = auxHouseholdMembers
+                                .householdMemberWebService.getHouseholdMembersByHouseholdId(households!!.id).body() as ArrayList<HouseholdMember>
+                            auxHouseholdMembers.forEach { householdMembersList ->
+                                usersProfileListPerHousehold.add(
+                                    RetrofitClient.userWebService
+                                        .getUserProfile(householdMembersList.userId).body() as User)
+                            }
+                            householdMembers[households.id] = usersProfileListPerHousehold
                         }
                     }
                 }catch (e: Exception){
