@@ -1,4 +1,4 @@
-package com.appsmoviles.splitly.view
+package com.appsmoviles.splitly.view.households
 
 import android.content.Context
 import androidx.compose.foundation.layout.*
@@ -6,8 +6,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -15,7 +13,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.appsmoviles.splitly.model.beans.householdmanagement.Household
 import com.appsmoviles.splitly.model.client.CredentialsSessionManager
 import com.appsmoviles.splitly.viewmodel.household.HouseholdViewModel
@@ -135,84 +132,5 @@ fun Households(viewModel: HouseholdViewModel, context: Context) {
     }
 }
 
-@Composable
-fun HouseholdItem(household: Household?, onEdit: () -> Unit, onDelete: () -> Unit) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-    ) {
-        Row(
-            modifier = Modifier.padding(16.dp).fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            Column(modifier = Modifier.weight(1f)) {
-                Text(text = household!!.name, fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Color(0xFF1E293B))
-                Text(text = household!!.description, fontSize = 14.sp, color = Color(0xFF64748B))
-                Text(text = "Currency: ${household.currency}", fontSize = 12.sp, color = Color(0xFF94A3B8))
-            }
-            Row {
-                IconButton(onClick = onEdit) {
-                    Icon(Icons.Default.Edit, contentDescription = "Edit", tint = Color(0xFF6366F1))
-                }
-                IconButton(onClick = onDelete) {
-                    Icon(Icons.Default.Delete, contentDescription = "Delete", tint = Color.Red)
-                }
-            }
-        }
-    }
-}
 
-@Composable
-fun HouseholdDialog(
-    household: Household?,
-    userId: Int,
-    onDismiss: () -> Unit,
-    onConfirm: (String, String, String) -> Unit
-) {
-    var name by remember { mutableStateOf(household?.name ?: "") }
-    var description by remember { mutableStateOf(household?.description ?: "") }
-    var currency by remember { mutableStateOf(household?.currency ?: "USD") }
 
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text(if (household == null) "Create Household" else "Edit Household") },
-        text = {
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                OutlinedTextField(
-                    value = name,
-                    onValueChange = { name = it },
-                    label = { Text("Name") },
-                    modifier = Modifier.fillMaxWidth()
-                )
-                OutlinedTextField(
-                    value = description,
-                    onValueChange = { description = it },
-                    label = { Text("Description") },
-                    modifier = Modifier.fillMaxWidth()
-                )
-                OutlinedTextField(
-                    value = currency,
-                    onValueChange = { currency = it },
-                    label = { Text("Currency (e.g. USD, PEN)") },
-                    modifier = Modifier.fillMaxWidth()
-                )
-            }
-        },
-        confirmButton = {
-            Button(
-                onClick = { onConfirm(name, description, currency) },
-                enabled = name.isNotBlank() && description.isNotBlank(),
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF6366F1))
-            ) {
-                Text("Confirm")
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text("Cancel")
-            }
-        }
-    )
-}

@@ -15,6 +15,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.appsmoviles.splitly.view.dashboard.Dashboard
+import com.appsmoviles.splitly.view.households.Households
 import com.appsmoviles.splitly.view.members.Members
 import com.appsmoviles.splitly.view.nav.AppNavigationBar
 import com.appsmoviles.splitly.view.nav.Drawer

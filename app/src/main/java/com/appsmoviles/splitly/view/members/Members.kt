@@ -60,7 +60,7 @@ fun Members(memberViewModel: HouseholdMemberViewModel, householdViewModel: House
                 .padding(paddingValues)
                 .fillMaxSize()
         ) {
-            // Search Bar
+            //Search Bar btw
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
