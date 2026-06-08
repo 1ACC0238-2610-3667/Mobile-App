@@ -2,12 +2,16 @@ package com.appsmoviles.splitly.view.members
 
 import android.content.Context
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.material3.carousel.HorizontalMultiBrowseCarousel
@@ -16,11 +20,16 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.unit.toSize
+import com.appsmoviles.splitly.model.beans.householdmanagement.Invitation
 import com.appsmoviles.splitly.model.client.CredentialsSessionManager
 import com.appsmoviles.splitly.viewmodel.HouseholdMemberViewModel
 import com.appsmoviles.splitly.viewmodel.household.HouseholdViewModel
@@ -28,6 +37,8 @@ import com.appsmoviles.splitly.viewmodel.household.HouseholdViewModel
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun Members(memberViewModel: HouseholdMemberViewModel, householdViewModel: HouseholdViewModel, context: Context) {
+
+    var showDialog by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
         memberViewModel.getHouseholdMembersByHouseholdId(
@@ -52,6 +63,17 @@ fun Members(memberViewModel: HouseholdMemberViewModel, householdViewModel: House
                 title = { Text("Household Members", fontWeight = FontWeight.Bold) },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White)
             )
+        },
+        floatingActionButton = {
+            FloatingActionButton(
+                onClick = {
+                    showDialog = true
+                },
+                containerColor = Color(0xFF6366F1),
+                contentColor = Color.White
+            ) {
+                Icon(Icons.Default.Add, contentDescription = "Add Member")
+            }
         },
         containerColor = Color(0xFFF8FAFC)
     ) { paddingValues ->
@@ -132,6 +154,92 @@ fun Members(memberViewModel: HouseholdMemberViewModel, householdViewModel: House
                 }
             }
         }
+    }
+
+    if(showDialog){
+
+        var email by remember { mutableStateOf("") }
+        var householdId by remember { mutableStateOf("") }
+        //For the dd menu of HHolds
+        var expanded by remember { mutableStateOf(false) }
+
+        var dropdownMenuFieldSize by remember { mutableStateOf(Size.Zero) }
+
+        AlertDialog(
+            onDismissRequest = { showDialog = false },
+            title = {Text("Invite New Member")},
+            text = {
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(8.dp) ) {
+                    OutlinedTextField(
+                        value = email,
+                        onValueChange = {email = it},
+                        modifier = Modifier.fillMaxWidth()
+                    )
+
+                    OutlinedTextField(
+                        value = householdId,
+                        onValueChange = {householdId = it},
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .onGloballyPositioned{ coordinates ->
+                                //to set ddm with the same size as the outlined text field
+                                dropdownMenuFieldSize = coordinates.size.toSize()
+                            },
+                        label = {Text("Household")},
+                        trailingIcon = {
+                            Icon(Icons.Default.MoreVert, "Cotent Description",
+                                Modifier.clickable{ expanded = !expanded})
+                        }
+
+                    )
+
+                    DropdownMenu(
+                        expanded = expanded,
+                        onDismissRequest = {expanded = false},
+                        modifier = Modifier
+                            .width(with(LocalDensity.current){dropdownMenuFieldSize.width.toDp()})
+                    ) {
+                        householdViewModel.households.forEach {  household ->
+                            DropdownMenuItem(
+                                text = {Text(text = household!!.id)},
+                                onClick = {
+                                    householdId =household!!.id
+                                    expanded = false
+                                }
+                            )
+                        }
+
+                    }
+
+                }
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        val newInvitation = Invitation(
+                            id = 0,
+                            email = email,
+                            householdId = householdId,
+                            description = ""
+                        )
+                        memberViewModel.createInvitation(newInvitation)
+                    },
+                    enabled = email.isNotBlank() && householdId.isNotBlank(),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF6366F1))
+                ) {
+                    Text("Confirm")
+                }
+
+            },
+            dismissButton = {
+                TextButton(onClick = {showDialog = false}) {
+                    Text("Cancel")
+                }
+
+            }
+        )
+
     }
 }
 
