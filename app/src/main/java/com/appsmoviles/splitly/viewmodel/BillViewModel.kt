@@ -7,6 +7,7 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.appsmoviles.splitly.model.beans.distribution.Bills
+import com.appsmoviles.splitly.model.beans.householdmanagement.Household
 import com.appsmoviles.splitly.model.client.RetrofitClient
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -25,7 +26,7 @@ class BillViewModel : ViewModel() {
     var householdBills: MutableMap<String, ArrayList<Bills>> = mutableMapOf()
 
 
-    fun getAmountOfBillsByHouseholdIds(householdIds: List<String>){
+    fun getAmountOfBillsByHouseholdIds(householdIds: ArrayList<Household?>){
         viewModelScope.launch {
             isLoading = true
             errorMessage = null
@@ -36,9 +37,9 @@ class BillViewModel : ViewModel() {
                     householdIds.forEach { householdId ->
                         val response =
                             RetrofitClient.billWebService
-                                .getBillByHouseHoldId(householdId)
+                                .getBillByHouseHoldId(householdId!!.id)
 
-                        householdBills[householdId] = response.body() as ArrayList<Bills>
+                        householdBills[householdId.id] = response.body() as ArrayList<Bills>
 
                         if(response.isSuccessful){
                             count += (response.body() as ArrayList<Bills>).size ?: 0

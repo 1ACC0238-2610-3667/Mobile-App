@@ -1,4 +1,4 @@
-package com.appsmoviles.splitly.view
+package com.appsmoviles.splitly.view.nav
 
 import android.content.Context
 import androidx.compose.foundation.layout.padding
@@ -14,11 +14,12 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.appsmoviles.splitly.view.Contributions
+import com.appsmoviles.splitly.view.Settings
 import com.appsmoviles.splitly.view.dashboard.Dashboard
+import com.appsmoviles.splitly.view.expenses.Expenses
 import com.appsmoviles.splitly.view.households.Households
 import com.appsmoviles.splitly.view.members.Members
-import com.appsmoviles.splitly.view.nav.AppNavigationBar
-import com.appsmoviles.splitly.view.nav.Drawer
 import com.appsmoviles.splitly.viewmodel.HouseholdMemberViewModel
 import com.appsmoviles.splitly.viewmodel.household.HouseholdViewModel
 import com.appsmoviles.splitly.viewmodel.SettingsViewModel
