@@ -25,6 +25,8 @@ class BillViewModel : ViewModel() {
 
     var householdBills: MutableMap<String, ArrayList<Bills>> = mutableMapOf()
 
+    var newBill: Bills? by mutableStateOf(null)
+
 
     fun getAmountOfBillsByHouseholdIds(householdIds: ArrayList<Household?>){
         viewModelScope.launch {
@@ -59,7 +61,7 @@ class BillViewModel : ViewModel() {
 
     }
 
-    fun createBill(bills: Bills, onSuccess: ()->Unit){
+    fun createBill(bills: Bills){
         viewModelScope.launch {
             isLoading = true
             errorMessage = null
@@ -69,7 +71,7 @@ class BillViewModel : ViewModel() {
                     RetrofitClient.billWebService.createBill(bills)
                 }
                 if (response.isSuccessful){
-                    onSuccess()
+                    newBill = response.body() as Bills
                 }else{
                     errorMessage = "Error: ${response.code()}"
                 }

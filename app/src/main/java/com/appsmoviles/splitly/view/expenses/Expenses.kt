@@ -49,12 +49,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.toSize
 import com.appsmoviles.splitly.model.beans.distribution.Bills
-import com.appsmoviles.splitly.model.beans.householdmanagement.Invitation
 import com.appsmoviles.splitly.model.client.CredentialsSessionManager
-import com.appsmoviles.splitly.view.members.MemberCard
 import com.appsmoviles.splitly.viewmodel.BillViewModel
 import com.appsmoviles.splitly.viewmodel.household.HouseholdViewModel
-import java.sql.Date
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -168,14 +165,14 @@ fun Expenses(billViewModel: BillViewModel, householdViewModel: HouseholdViewMode
                 Column(
                     verticalArrangement = Arrangement.spacedBy(8.dp) ) {
                     OutlinedTextField(
-                        value = bill.description!!,
-                        onValueChange = {bill.description = it},
+                        value = bill!!.description!!,
+                        onValueChange = {bill!!.description = it},
                         modifier = Modifier.fillMaxWidth()
                     )
 
                     OutlinedTextField(
-                        value = bill.houseHoldId!!,
-                        onValueChange = {bill.houseHoldId = it},
+                        value = bill!!.houseHoldId!!,
+                        onValueChange = {bill!!.houseHoldId = it},
                         modifier = Modifier
                             .fillMaxWidth()
                             .onGloballyPositioned{ coordinates ->
@@ -200,23 +197,23 @@ fun Expenses(billViewModel: BillViewModel, householdViewModel: HouseholdViewMode
                             DropdownMenuItem(
                                 text = {Text(text = household!!.id)},
                                 onClick = {
-                                    bill.houseHoldId =household!!.id
+                                    bill!!.houseHoldId =household!!.id
                                     expanded = false
                                 }
                             )
                         }
 
-                    },
+                    }
 
                     OutlinedTextField(
-                        value = bill.amount.toString(),
-                        onValueChange = {bill.description = it},
+                        value = bill!!.amount.toString(),
+                        onValueChange = {bill!!.description = it},
                         modifier = Modifier.fillMaxWidth()
                     )
 
                     OutlinedTextField(
-                        value = bill.paymentDate.toString(),
-                        onValueChange = {bill.paymentDate = it},
+                        value = bill!!.paymentDate.toString(),
+                        onValueChange = {bill!!.paymentDate = it},
                         modifier = Modifier.fillMaxWidth()
                     )
 
@@ -227,17 +224,17 @@ fun Expenses(billViewModel: BillViewModel, householdViewModel: HouseholdViewMode
                     onClick = {
                         val newBill = Bills(
                             id = "",
-                            houseHoldId = bill.houseHoldId,
-                            description = bill.description,
-                            amount = bill.amount,
+                            houseHoldId = bill!!.houseHoldId,
+                            description = bill!!.description,
+                            amount = bill!!.amount,
                             createdBy = userId,
-                            paymentDate = bill.paymentDate,
+                            paymentDate = bill!!.paymentDate,
                             createdAt = "",
                             updatedAt = "",
                         )
                         billViewModel.createBill(newBill)
                     },
-                    enabled = bill.amount.toString().isNotBlank() && bill.houseHoldId.isNotBlank(),
+                    enabled = bill!!.amount.toString().isNotBlank() && bill!!.houseHoldId!!.isNotBlank(),
                     colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF6366F1))
                 ) {
                     Text("Confirm")
