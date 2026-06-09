@@ -117,7 +117,15 @@ fun Members(memberViewModel: HouseholdMemberViewModel, householdViewModel: House
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     Text("No members found", color = Color.Gray)
                 }
-            } else {
+            }else if(memberViewModel.errorMessage != null){
+                Snackbar(
+                    modifier = Modifier.padding(16.dp).align(Alignment.End),
+                    containerColor = Color.Red,
+                    contentColor = Color.White
+                ){
+                    Text(memberViewModel.errorMessage!!)
+                }
+            }else {
                 LazyColumn(
                     contentPadding = PaddingValues(bottom = 16.dp)
                 ) {

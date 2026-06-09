@@ -26,6 +26,7 @@ import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Snackbar
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
@@ -99,10 +100,18 @@ fun Expenses(billViewModel: BillViewModel, householdViewModel: HouseholdViewMode
                     modifier = Modifier.align(Alignment.Center))
             }else if(billViewModel.householdBills.isNullOrEmpty()){
                 Text(
-                    text = "No Bills found. Crate omne"
+                    text = "No Bills found. Crate one"
                 )
 
-            }else{
+            } else if (billViewModel.errorMessage != null) {
+                Snackbar(
+                    modifier = Modifier.padding(16.dp).align(Alignment.BottomCenter),
+                    containerColor = Color.Red,
+                    contentColor = Color.White
+                ) {
+                    Text(billViewModel.errorMessage!!)
+                }
+            } else{
                 LazyColumn(
                     contentPadding = PaddingValues(bottom = 16.dp)
                 ) {
@@ -145,6 +154,8 @@ fun Expenses(billViewModel: BillViewModel, householdViewModel: HouseholdViewMode
 
                 }
             }
+
+
         }
 
     }
