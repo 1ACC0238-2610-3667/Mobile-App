@@ -31,7 +31,6 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             SplitlyTheme {
-                OkHttpClientObject.init(this)
                 Navigator(authViewModel, dashboardViewModel, settingsViewModel, householdViewModel, householdMemberViewModel, billViewModel, this)
             }
         }

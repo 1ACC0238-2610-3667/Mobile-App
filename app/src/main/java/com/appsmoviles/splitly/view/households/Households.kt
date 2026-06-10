@@ -1,6 +1,7 @@
 package com.appsmoviles.splitly.view.households
 
 import android.content.Context
+import android.util.Log
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -27,6 +28,7 @@ fun Households(viewModel: HouseholdViewModel, context: Context) {
 
     LaunchedEffect(Unit) {
         if (userId != -1) {
+            Log.d("UserId", "$userId")
             viewModel.getHouseholdsByRepresentativeId(userId)
         }
     }

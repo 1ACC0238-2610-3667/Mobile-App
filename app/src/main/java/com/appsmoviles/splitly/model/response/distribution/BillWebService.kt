@@ -10,7 +10,7 @@ import retrofit2.http.POST
 import retrofit2.http.Path
 
 interface BillWebService : WebService {
-    @GET("bills/byhouseholdId/{householdId}")
+    @GET("bills/byhousehold/{householdId}")
     suspend fun getBillByHouseHoldId(
         @Path("householdId") householdId: String
     ) : Response<List<Bills>>

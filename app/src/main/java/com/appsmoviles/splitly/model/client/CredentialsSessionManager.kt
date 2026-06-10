@@ -35,7 +35,7 @@ object CredentialsSessionManager {
     }
 
     fun getIdFromUser(): Int{
-        if(userId != 0){
+        if(userId == 0){
             throw IllegalStateException("UserId not initialized. Call init(context) first.")
         }
         return userId
