@@ -82,6 +82,7 @@ fun Drawer(nav: NavHostController, onCloseDrawer: () -> Unit, onLogOut: () -> Un
         val menuItems = listOf(
             DrawerItem("Dashboard", "Dashboard", Icons.Rounded.Dashboard),
             DrawerItem("Households", "Households", Icons.Rounded.House),
+            //DrawerItem("Members", "Members", Icons.Rounded.Person),
             DrawerItem("Expenses", "Expenses", Icons.Rounded.Wallet),
             DrawerItem("Contributions", "Contributions", Icons.Rounded.BarChart),
             DrawerItem("Settings", "Settings", Icons.Rounded.Settings)
