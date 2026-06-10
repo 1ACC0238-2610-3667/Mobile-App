@@ -50,7 +50,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.toSize
 import com.appsmoviles.splitly.model.beans.distribution.Bills
+import com.appsmoviles.splitly.model.beans.distribution.Contribution
 import com.appsmoviles.splitly.model.client.CredentialsSessionManager
+import com.appsmoviles.splitly.view.Contributions
 import com.appsmoviles.splitly.viewmodel.BillViewModel
 import com.appsmoviles.splitly.viewmodel.household.HouseholdViewModel
 
@@ -244,6 +246,17 @@ fun Expenses(billViewModel: BillViewModel, householdViewModel: HouseholdViewMode
                             updatedAt = "",
                         )
                         billViewModel.createBill(newBill)
+
+                        val newContribution = Contribution(
+                            id = "",
+                            billId = billViewModel.newBill!!.id,
+                            householdId = bill!!.houseHoldId,
+                            description = bill!!.description,
+                            deadlineForMembers = bill!!.paymentDate,
+                            strategy = 1,
+                            amount = bill!!.amount
+                            )
+
                     },
                     enabled = bill!!.amount.toString().isNotBlank() && bill!!.houseHoldId!!.isNotBlank(),
                     colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF6366F1))

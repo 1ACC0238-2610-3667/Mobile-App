@@ -1,6 +1,7 @@
 package com.appsmoviles.splitly.viewmodel.dashboard
 
 import android.content.Context
+import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -30,6 +31,7 @@ class DashboardViewModel : ViewModel() {
             val prefs = context.getSharedPreferences("splitly_prefs", Context.MODE_PRIVATE)
 
             val userJsonStr = prefs.getString("user", null)
+            Log.i("User data:", "It contains: $userJsonStr")
             var userId = -1
             if (!userJsonStr.isNullOrEmpty()) {
                 try {
@@ -46,6 +48,8 @@ class DashboardViewModel : ViewModel() {
                     val householdsRes = withContext(Dispatchers.IO) {
                         RetrofitClient.householdWebService.getHouseHoldByRepresentativeId(userId)
                     }
+
+                    Log.i("HouseholdsRes: ", "$householdsRes")
 
                     if (householdsRes.isSuccessful && householdsRes.body() != null) {
                         val householdsList = householdsRes.body()!!

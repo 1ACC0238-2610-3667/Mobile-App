@@ -9,6 +9,7 @@ import com.appsmoviles.splitly.model.client.OkHttpClientObject
 import com.appsmoviles.splitly.ui.theme.SplitlyTheme
 import com.appsmoviles.splitly.view.nav.Navigator
 import com.appsmoviles.splitly.viewmodel.AuthViewModel
+import com.appsmoviles.splitly.viewmodel.BillViewModel
 import com.appsmoviles.splitly.viewmodel.HouseholdMemberViewModel
 import com.appsmoviles.splitly.viewmodel.household.HouseholdViewModel
 import com.appsmoviles.splitly.viewmodel.SettingsViewModel
@@ -21,6 +22,7 @@ class MainActivity : ComponentActivity() {
     private val settingsViewModel by viewModels<SettingsViewModel>()
     private val householdViewModel by viewModels<HouseholdViewModel>()
     private val householdMemberViewModel by viewModels<HouseholdMemberViewModel>()
+    private val billViewModel by viewModels<BillViewModel>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -30,7 +32,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             SplitlyTheme {
                 OkHttpClientObject.init(this)
-                Navigator(authViewModel, dashboardViewModel, settingsViewModel, householdViewModel, householdMemberViewModel, this)
+                Navigator(authViewModel, dashboardViewModel, settingsViewModel, householdViewModel, householdMemberViewModel, billViewModel, this)
             }
         }
     }

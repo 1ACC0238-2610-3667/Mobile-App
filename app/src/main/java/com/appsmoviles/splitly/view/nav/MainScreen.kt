@@ -20,6 +20,7 @@ import com.appsmoviles.splitly.view.dashboard.Dashboard
 import com.appsmoviles.splitly.view.expenses.Expenses
 import com.appsmoviles.splitly.view.households.Households
 import com.appsmoviles.splitly.view.members.Members
+import com.appsmoviles.splitly.viewmodel.BillViewModel
 import com.appsmoviles.splitly.viewmodel.HouseholdMemberViewModel
 import com.appsmoviles.splitly.viewmodel.household.HouseholdViewModel
 import com.appsmoviles.splitly.viewmodel.SettingsViewModel
@@ -29,7 +30,8 @@ import kotlinx.coroutines.launch
 @Composable
 fun MainScreen(rootNav: NavHostController,
                dashboardViewModel: DashboardViewModel, settingsViewModel: SettingsViewModel,
-               householdViewModel: HouseholdViewModel, householdMemberViewModel: HouseholdMemberViewModel,context: Context) {
+               householdViewModel: HouseholdViewModel, householdMemberViewModel: HouseholdMemberViewModel,
+               billViewModel: BillViewModel,context: Context) {
     val navController = rememberNavController()
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
@@ -71,7 +73,7 @@ fun MainScreen(rootNav: NavHostController,
                 modifier = Modifier.padding(padding)
             ) {
                 composable("Dashboard") { Dashboard(dashboardViewModel, context, navController) }
-                composable("Expenses") { Expenses() }
+                composable("Expenses") { Expenses(billViewModel, householdViewModel, context) }
                 composable("Households") { Households(householdViewModel, context) }
                 composable("Members") {
                     Members(

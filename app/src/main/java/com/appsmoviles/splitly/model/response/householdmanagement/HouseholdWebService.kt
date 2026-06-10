@@ -18,7 +18,7 @@ interface HouseholdWebService: WebService {
         @Path("id") id: String
     ) : Response<Household>
 
-    @GET("household/{representativeId}")
+    @GET("house_hold/representative/{representativeId}")
     suspend fun getHouseHoldByRepresentativeId(
         @Path("representativeId") representativeId: Int
     ) : Response<List<Household>>

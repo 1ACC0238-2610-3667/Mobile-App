@@ -22,7 +22,7 @@ import com.appsmoviles.splitly.model.beans.householdmanagement.Household
 @Composable
 fun HouseholdDialog(
     household: Household?,
-    userId: Int,
+     userId: Int,
     onDismiss: () -> Unit,
     onConfirm: (String, String, String) -> Unit
 ) {
@@ -53,6 +53,11 @@ fun HouseholdDialog(
                     label = { Text("Currency (e.g. USD, PEN)") },
                     modifier = Modifier.fillMaxWidth()
                 )
+
+
+
+
+
             }
         },
         confirmButton = {
