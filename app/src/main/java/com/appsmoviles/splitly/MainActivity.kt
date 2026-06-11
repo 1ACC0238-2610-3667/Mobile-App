@@ -5,6 +5,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
+import com.appsmoviles.splitly.model.client.CredentialsSessionManager
 import com.appsmoviles.splitly.model.client.OkHttpClientObject
 import com.appsmoviles.splitly.ui.theme.SplitlyTheme
 import com.appsmoviles.splitly.view.nav.Navigator
@@ -27,6 +28,8 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        OkHttpClientObject.init(this)
+        CredentialsSessionManager.init(this)
 
         enableEdgeToEdge()
         setContent {

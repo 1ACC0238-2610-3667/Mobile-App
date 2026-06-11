@@ -14,8 +14,6 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.appsmoviles.splitly.model.client.CredentialsSessionManager
-import com.appsmoviles.splitly.model.client.OkHttpClientObject
 import com.appsmoviles.splitly.view.Contributions
 import com.appsmoviles.splitly.view.Settings
 import com.appsmoviles.splitly.view.dashboard.Dashboard
@@ -37,9 +35,6 @@ fun MainScreen(rootNav: NavHostController,
     val navController = rememberNavController()
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
-
-    OkHttpClientObject.init(context)
-    CredentialsSessionManager.init(context)
 
     ModalNavigationDrawer(
         drawerState = drawerState,

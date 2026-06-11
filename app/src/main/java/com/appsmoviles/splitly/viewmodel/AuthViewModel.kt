@@ -8,7 +8,9 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.appsmoviles.splitly.model.beans.iam.LoginRequest
+import com.appsmoviles.splitly.model.beans.iam.SignUpRequest
 import com.appsmoviles.splitly.model.beans.iam.User
+import com.appsmoviles.splitly.model.client.CredentialsSessionManager
 import com.appsmoviles.splitly.model.client.RetrofitClient
 import kotlinx.coroutines.launch
 import org.json.JSONObject
@@ -42,6 +44,8 @@ class AuthViewModel : ViewModel() {
                     val finalRole = authData.role ?: "Representative"
 
                     editor.putString("householdId", finalHouseholdId)
+                    editor.putBoolean("is_logged_in", true)
+                    editor.putString("email", email)
 
                     val userJson = JSONObject().apply {
                         put("id", authData.id)
@@ -53,6 +57,8 @@ class AuthViewModel : ViewModel() {
                     }
                     editor.putString("user", userJson.toString())
                     editor.apply()
+
+                    CredentialsSessionManager.init(context)
 
                     onSuccess()
                 } else {
@@ -67,20 +73,22 @@ class AuthViewModel : ViewModel() {
         }
     }
 
-    fun signUp(context: Context, newUser: User, onSuccess: () -> Unit) {
+    fun signUp(context: Context, newSignUpRequest: SignUpRequest, onSuccess: () -> Unit) {
         viewModelScope.launch {
             isLoading = true
             errorMessage = null
             try {
-                val response = RetrofitClient.webService.signUp(newUser)
+                val response = RetrofitClient.webService.signUp(newSignUpRequest)
+                Log.d("SignUp Response - ","response: $response")
                 if (response.isSuccessful && response.body() != null) {
-                    user = response.body()
                     onSuccess()
                 } else {
                     errorMessage = "Error en el registro: ${response.code()}"
+                    Log.d("errorMessage ","errorMessage: $errorMessage")
                 }
             } catch (e: Exception) {
                 errorMessage = "Error: ${e.localizedMessage}"
+                Log.d("errorMessage ","errorMessage: $errorMessage")
             } finally {
                 isLoading = false
             }

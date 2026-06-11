@@ -1,5 +1,6 @@
 package com.appsmoviles.splitly.viewmodel.household
 
+import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -100,10 +101,12 @@ class HouseholdViewModel : ViewModel() {
                 if(response.isSuccessful && response.body()!= null){
                     auxHousehold = response.body()
                 }else{
-                    errorMessage = "Error: (${response.code()}) ${response.message()} "
+                    errorMessage = "Error: (${response.code()}) ${response.message()}"
+                    Log.d("ErrorMessage", "$errorMessage")
                 }
             }catch(e: Exception) {
                 errorMessage = "Error: ${e.message}"
+                Log.d("ErrorMessage with exception", "$errorMessage")
             }finally {
                 isLoading = false
             }

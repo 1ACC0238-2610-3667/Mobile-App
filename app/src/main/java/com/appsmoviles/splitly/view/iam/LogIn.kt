@@ -139,15 +139,6 @@ fun LogIn(nav: NavHostController, viewModel: AuthViewModel) {
             Button(
                 onClick = {
                     viewModel.login(context, txtUser, txtPas) {
-                        sharedPreferences.edit().apply {
-                            putBoolean("is_logged_in", true)
-                            putString("email", txtUser)
-                            viewModel.user?.let {
-                                putInt("user_id", it.id)
-                                putString("user_name", it.name ?: "")
-                            }
-                            apply()
-                        }
                         nav.navigate("Main") {
                             popUpTo("LogIn") { inclusive = true }
                         }

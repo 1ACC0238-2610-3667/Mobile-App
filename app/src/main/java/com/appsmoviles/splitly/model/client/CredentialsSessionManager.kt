@@ -11,9 +11,9 @@ object CredentialsSessionManager {
 
     private lateinit var sharedPreferences: SharedPreferences
 
-    private lateinit var tokenStr: String
+    private var tokenStr: String = ""
 
-    private var userId: Int by mutableIntStateOf(0)
+    private var userId: Int by mutableIntStateOf(-1)
 
     fun init(context: Context){
         val prefs = context.getSharedPreferences("splitly_prefs", Context.MODE_PRIVATE)
@@ -23,21 +23,21 @@ object CredentialsSessionManager {
         if(!userJsonStr.isNullOrEmpty()) {
             val json = JSONObject(userJsonStr)
             userId = json.optInt("id", -1)
+        } else {
+            userId = -1
         }
-
     }
 
     fun getToken() : String{
-        if (!::tokenStr.isInitialized){
-            throw IllegalStateException("TokenSessionManager not initialized. Call init(context) first.")
-        }
         return tokenStr
     }
 
     fun getIdFromUser(): Int{
-        if(userId == 0){
-            throw IllegalStateException("UserId not initialized. Call init(context) first.")
-        }
         return userId
+    }
+
+    fun logout() {
+        userId = -1
+        tokenStr = ""
     }
 }

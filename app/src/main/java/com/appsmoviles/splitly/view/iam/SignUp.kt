@@ -1,6 +1,5 @@
 package com.appsmoviles.splitly.view.iam
 
-import android.content.Context
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -48,13 +47,13 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import com.appsmoviles.splitly.R
+import com.appsmoviles.splitly.model.beans.iam.SignUpRequest
 import com.appsmoviles.splitly.model.beans.iam.User
 import com.appsmoviles.splitly.viewmodel.AuthViewModel
 
 @Composable
 fun SignUp(nav: NavHostController, viewModel: AuthViewModel) {
     val context = LocalContext.current
-    val sharedPreferences = remember { context.getSharedPreferences("splitly_prefs", Context.MODE_PRIVATE) }
 
     var txtName by remember { mutableStateOf("") }
     var txtEmail by remember { mutableStateOf("") }
@@ -64,7 +63,7 @@ fun SignUp(nav: NavHostController, viewModel: AuthViewModel) {
     var isPasswordVisible by remember { mutableStateOf(false) }
     var isConfirmPasswordVisible by remember { mutableStateOf(false) }
 
-    var checked by remember { mutableStateOf(false) }
+    var checked by remember { mutableStateOf(true) }
 
     Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
         Column(
@@ -116,6 +115,7 @@ fun SignUp(nav: NavHostController, viewModel: AuthViewModel) {
 
                 Switch(
                     checked = checked,
+                    enabled = false,
                     onCheckedChange = {
                         checked = it
                         role = if (checked) "Representative" else "Member"
@@ -208,29 +208,16 @@ fun SignUp(nav: NavHostController, viewModel: AuthViewModel) {
             Button(
                 onClick = {
                     if (txtPas == txtConfirmPas) {
-                        val newUser = User(
-                            id = 0,
+                        val newSignUpRequest = SignUpRequest(
                             name = txtName,
                             email = txtEmail,
-                            token = "",
-                            houseHoldId = "",
+                            password = txtPas,
+                            household = "",
                             role = role,
-                            plan = "Free",
-                            isNewUser = true
+                            plan = 0,
                         )
-                        viewModel.signUp(context, newUser) {
-                            sharedPreferences.edit().apply {
-                                putBoolean("is_logged_in", true)
-                                putString("email", txtEmail)
-                                viewModel.user?.let {
-                                    putInt("user_id", it.id)
-                                    putString("user_name", it.name ?: txtName)
-                                }
-                                apply()
-                            }
-                            nav.navigate("Main") {
-                                popUpTo("SignUp") { inclusive = true }
-                            }
+                        viewModel.signUp(context, newSignUpRequest) {
+                            nav.navigate("LogIn")
                         }
                     }
                 },

@@ -1,5 +1,6 @@
 package com.appsmoviles.splitly.viewmodel
 
+import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -51,6 +52,8 @@ class HouseholdMemberViewModel: ViewModel() {
                                         .getUserProfile(householdMembersList.userId).body() as User)
                             }
                             householdMembers[households.id] = usersProfileListPerHousehold
+
+                            Log.i("HouseholdMembers", "$householdMembers")
                         }
                     }
                 }catch (e: Exception){

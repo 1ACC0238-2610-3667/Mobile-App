@@ -9,7 +9,9 @@ import retrofit2.http.Query
 
 interface UserWebService {
     @GET("user/user/{id}")
-    suspend fun getUserProfile(@Path("id") id: Int): Response<User>
+    suspend fun getUserProfile(
+        @Path("id") id: Int
+    ): Response<User>
 
     @GET("user")
     suspend fun getMembers(
