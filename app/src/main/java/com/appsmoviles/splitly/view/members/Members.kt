@@ -154,7 +154,7 @@ fun Members(memberViewModel: HouseholdMemberViewModel, householdViewModel: House
                             ) { index ->
                                 val member = members[index]
                                 if (member != null) {
-                                    MemberCard(user = member)
+                                    MemberCard(user = member, index)
                                 }
                             }
                         }
@@ -168,6 +168,8 @@ fun Members(memberViewModel: HouseholdMemberViewModel, householdViewModel: House
 
         var email by remember { mutableStateOf("") }
         var householdId by remember { mutableStateOf("") }
+        var description by remember { mutableStateOf("") }
+
         //For the dd menu of HHolds
         var expanded by remember { mutableStateOf(false) }
 
@@ -182,6 +184,14 @@ fun Members(memberViewModel: HouseholdMemberViewModel, householdViewModel: House
                     OutlinedTextField(
                         value = email,
                         onValueChange = {email = it},
+                        label = {Text("Email")},
+                        modifier = Modifier.fillMaxWidth()
+                    )
+
+                    OutlinedTextField(
+                        value = description,
+                        onValueChange = {description = it},
+                        label = {Text("Description")},
                         modifier = Modifier.fillMaxWidth()
                     )
 
@@ -226,12 +236,12 @@ fun Members(memberViewModel: HouseholdMemberViewModel, householdViewModel: House
                 Button(
                     onClick = {
                         val newInvitation = Invitation(
-                            id = 0,
                             email = email,
                             householdId = householdId,
-                            description = ""
+                            description = description
                         )
                         memberViewModel.createInvitation(newInvitation)
+                        showDialog = false
                     },
                     enabled = email.isNotBlank() && householdId.isNotBlank(),
                     colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF6366F1))

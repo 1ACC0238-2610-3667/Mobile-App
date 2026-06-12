@@ -31,7 +31,7 @@ import androidx.compose.ui.unit.sp
 import com.appsmoviles.splitly.model.beans.iam.User
 
 @Composable
-fun MemberCard(user: User) {
+fun MemberCard(user: User, index: Int) {
     Card(
         modifier = Modifier
             .fillMaxSize(),
@@ -57,7 +57,7 @@ fun MemberCard(user: User) {
                 }
                 Spacer(modifier = Modifier.width(12.dp))
                 Text(
-                    text = user.name ?: "Unknown",
+                    text = "Member $index" ?: "Unknown",
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold,
                     color = Color(0xFF1E293B)

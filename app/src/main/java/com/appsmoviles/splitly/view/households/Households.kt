@@ -100,7 +100,7 @@ fun Households(viewModel: HouseholdViewModel, context: Context) {
             household = selectedHousehold,
             userId = userId,
             onDismiss = { showDialog = false },
-            onConfirm = { name, description, currency ->
+            onConfirm = { name, description, currency, memberCount ->
                 if (selectedHousehold == null) {
                     val newHousehold = Household(
                         id = "", // Server generates this
@@ -108,8 +108,10 @@ fun Households(viewModel: HouseholdViewModel, context: Context) {
                         representativeId = userId,
                         currency = currency,
                         description = description,
-                        memberCount = 1,
-                        startDate = "" // Server handles this
+                        memberCount = memberCount,
+                        startDate = null, // Server handles this
+                        createdAt = null,
+                        updatedAt = null
                     )
                     viewModel.createHousehold(newHousehold)
                 } else {

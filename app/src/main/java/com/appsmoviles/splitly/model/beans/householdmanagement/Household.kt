@@ -9,5 +9,7 @@ data class Household(
     var currency: String,
     var description: String,
     var memberCount: Int,
-    var startDate: String
+    var startDate: String?,
+    var createdAt: String?,
+    var updatedAt: String?
 )

@@ -42,14 +42,14 @@ class HouseholdMemberViewModel: ViewModel() {
                         }
                     } else {
                         val auxHouseholds = viewModel.households
+                        val users = RetrofitClient.userWebService.getAllUsers().body() as ArrayList<User>
+
                         auxHouseholds.forEach { households ->
                             val usersProfileListPerHousehold: ArrayList<User?> by mutableStateOf(arrayListOf())
                             val auxHouseholdMembers = RetrofitClient
                                 .householdMemberWebService.getHouseholdMembersByHouseholdId(households!!.id).body() as ArrayList<HouseholdMember>
                             auxHouseholdMembers.forEach { householdMembersList ->
-                                usersProfileListPerHousehold.add(
-                                    RetrofitClient.userWebService
-                                        .getUserProfile(householdMembersList.userId).body() as User)
+                                usersProfileListPerHousehold.add(users.find { it.id == householdMembersList.userId })
                             }
                             householdMembers[households.id] = usersProfileListPerHousehold
 
@@ -74,8 +74,10 @@ class HouseholdMemberViewModel: ViewModel() {
                     RetrofitClient.invitationWebService.createInvitation(invitation)
                 }
 
+                Log.d("Invitation Response", "$response")
+
                 if(response.isSuccessful && response.body() != null ){
-                     invitationResponse = response.body()!!
+                     invitationResponse = response.body()
                 }else{
                     errorMessage = "Error: ${response.code()} Message: ${response.message()}"
                 }

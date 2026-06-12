@@ -24,11 +24,12 @@ fun HouseholdDialog(
     household: Household?,
      userId: Int,
     onDismiss: () -> Unit,
-    onConfirm: (String, String, String) -> Unit
+    onConfirm: (String, String, String, Int) -> Unit
 ) {
     var name by remember { mutableStateOf(household?.name ?: "") }
     var description by remember { mutableStateOf(household?.description ?: "") }
     var currency by remember { mutableStateOf(household?.currency ?: "USD") }
+    var memberCount by remember { mutableStateOf(household?.memberCount ?: 0) }
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -48,6 +49,12 @@ fun HouseholdDialog(
                     modifier = Modifier.fillMaxWidth()
                 )
                 OutlinedTextField(
+                    value = memberCount.toString(),
+                    onValueChange = { memberCount = it.toInt() },
+                    label = { Text("Description") },
+                    modifier = Modifier.fillMaxWidth()
+                )
+                OutlinedTextField(
                     value = currency,
                     onValueChange = { currency = it },
                     label = { Text("Currency (e.g. USD, PEN)") },
@@ -58,11 +65,12 @@ fun HouseholdDialog(
 
 
 
+
             }
         },
         confirmButton = {
             Button(
-                onClick = { onConfirm(name, description, currency) },
+                onClick = { onConfirm(name, description, currency, memberCount) },
                 enabled = name.isNotBlank() && description.isNotBlank(),
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF6366F1))
             ) {

@@ -41,6 +41,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.blur
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onGloballyPositioned
@@ -165,7 +166,11 @@ fun Expenses(billViewModel: BillViewModel, householdViewModel: HouseholdViewMode
 
     if(showDialog){
 
-        var bill: Bills? by remember {mutableStateOf(null)}
+        var houseHoldId: String by remember { mutableStateOf("") }
+        var description: String by remember { mutableStateOf("") }
+        var amount: Double by remember { mutableStateOf(-1.00) }
+        var paymentDate: String by remember { mutableStateOf("") }
+
         //For the dd menu of HHolds
         var expanded by remember { mutableStateOf(false) }
 
@@ -178,56 +183,67 @@ fun Expenses(billViewModel: BillViewModel, householdViewModel: HouseholdViewMode
                 Column(
                     verticalArrangement = Arrangement.spacedBy(8.dp) ) {
                     OutlinedTextField(
-                        value = bill!!.description!!,
-                        onValueChange = {bill!!.description = it},
+                        value = description!!,
+                        label = {
+                            Text(
+                                text = "Description"
+                            )
+                        },
+                        onValueChange = { description = it },
                         modifier = Modifier.fillMaxWidth()
                     )
+                    Box() {
 
-                    OutlinedTextField(
-                        value = bill!!.houseHoldId!!,
-                        onValueChange = {bill!!.houseHoldId = it},
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .onGloballyPositioned{ coordinates ->
-                                //to set ddm with the same size as the outlined text field
-                                dropdownMenuFieldSize = coordinates.size.toSize()
-                            },
-                        label = {Text("Household")},
-                        trailingIcon = {
-                            Icon(Icons.Default.MoreVert, "Content Description",
-                                Modifier.clickable{ expanded = !expanded})
+                        OutlinedTextField(
+                            value = houseHoldId!!,
+                            onValueChange = { houseHoldId = it },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .onGloballyPositioned { coordinates ->
+                                    //to set ddm with the same size as the outlined text field
+                                    dropdownMenuFieldSize = coordinates.size.toSize()
+                                },
+                            label = { Text("Household") },
+                            trailingIcon = {
+                                Icon(
+                                    Icons.Default.MoreVert, "Content Description",
+                                    Modifier.clickable { expanded = !expanded })
+                            }
+
+                        )
+
+                        DropdownMenu(
+                            expanded = expanded,
+                            onDismissRequest = { expanded = false },
+                            modifier = Modifier
+                                .width(with(LocalDensity.current) { dropdownMenuFieldSize.width.toDp() })
+                        ) {
+                            householdViewModel.households.forEach { household ->
+                                DropdownMenuItem(
+                                    text = { Text(text = household!!.id) },
+                                    onClick = {
+                                        houseHoldId = household!!.id
+                                        expanded = false
+                                    }
+                                )
+                            }
+
                         }
-
-                    )
-
-                    DropdownMenu(
-                        expanded = expanded,
-                        onDismissRequest = {expanded = false},
-                        modifier = Modifier
-                            .width(with(LocalDensity.current){dropdownMenuFieldSize.width.toDp()})
-                    ) {
-                        householdViewModel.households.forEach {  household ->
-                            DropdownMenuItem(
-                                text = {Text(text = household!!.id)},
-                                onClick = {
-                                    bill!!.houseHoldId =household!!.id
-                                    expanded = false
-                                }
-                            )
-                        }
-
                     }
 
                     OutlinedTextField(
-                        value = bill!!.amount.toString(),
-                        onValueChange = {bill!!.description = it},
-                        modifier = Modifier.fillMaxWidth()
+                        value = amount.toString(),
+                        onValueChange = {amount = it.toDouble()},
+                        modifier = Modifier.fillMaxWidth(),
+                        label = {Text("Amount to Pay")}
                     )
 
                     OutlinedTextField(
-                        value = bill!!.paymentDate.toString(),
-                        onValueChange = {bill!!.paymentDate = it},
-                        modifier = Modifier.fillMaxWidth()
+                        value = paymentDate.toString(),
+                        onValueChange = {paymentDate = it},
+                        modifier = Modifier.fillMaxWidth(),
+                        label = {Text("YYYY-MM-DD")}
+
                     )
 
                 }
@@ -237,17 +253,17 @@ fun Expenses(billViewModel: BillViewModel, householdViewModel: HouseholdViewMode
                     onClick = {
                         val newBill = Bills(
                             id = "",
-                            houseHoldId = bill!!.houseHoldId,
-                            description = bill!!.description,
-                            amount = bill!!.amount,
+                            houseHoldId = houseHoldId,
+                            description = description,
+                            amount = amount,
                             createdBy = userId,
-                            paymentDate = bill!!.paymentDate,
+                            paymentDate = paymentDate,
                             createdAt = "",
                             updatedAt = "",
                         )
                         billViewModel.createBill(newBill)
 
-                        val newContribution = Contribution(
+                        /*val newContribution = Contribution(
                             id = "",
                             billId = billViewModel.newBill!!.id,
                             householdId = bill!!.houseHoldId,
@@ -255,10 +271,11 @@ fun Expenses(billViewModel: BillViewModel, householdViewModel: HouseholdViewMode
                             deadlineForMembers = bill!!.paymentDate,
                             strategy = 1,
                             amount = bill!!.amount
-                            )
+                            )*/
+                        showDialog = false
 
                     },
-                    enabled = bill!!.amount.toString().isNotBlank() && bill!!.houseHoldId!!.isNotBlank(),
+                    enabled = amount.toString().isNotBlank() && houseHoldId!!.isNotBlank(),
                     colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF6366F1))
                 ) {
                     Text("Confirm")
@@ -274,5 +291,11 @@ fun Expenses(billViewModel: BillViewModel, householdViewModel: HouseholdViewMode
         )
 
     }
+
+    /*LaunchedEffect(billViewModel.householdBills) {
+        if (billViewModel.householdBills != null) {
+            billViewModel.getAmountOfBillsByHouseholdIds(householdViewModel.households)
+        }
+    }*/
 
 }

@@ -14,8 +14,5 @@ interface UserWebService {
     ): Response<User>
 
     @GET("user")
-    suspend fun getMembers(
-        @Query("householdId") householdId: String,
-        @Query("role") role: String = "member"
-    ): Response<List<User>>
+    suspend fun getAllUsers(): Response<List<User>>
 }
