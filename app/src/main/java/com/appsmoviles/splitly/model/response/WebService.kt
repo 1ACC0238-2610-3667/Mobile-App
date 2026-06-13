@@ -28,8 +28,9 @@ interface WebService {
     suspend fun login(@Body request: LoginRequest): Response<User>
 
     @POST("authentication/sign-up")
-    suspend fun signUp(@Body signUpRequest: SignUpRequest): Response<SignUpRequest
-            >
+    suspend fun signUp(
+        @Body signUpRequest: SignUpRequest
+    ): Response<User>
 
 
     @GET("contribution/byhouseholdid/{householdId}")

@@ -48,7 +48,6 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import com.appsmoviles.splitly.R
 import com.appsmoviles.splitly.model.beans.iam.SignUpRequest
-import com.appsmoviles.splitly.model.beans.iam.User
 import com.appsmoviles.splitly.viewmodel.AuthViewModel
 
 @Composable
@@ -114,8 +113,8 @@ fun SignUp(nav: NavHostController, viewModel: AuthViewModel) {
                 Spacer(modifier = Modifier.width(12.dp))
 
                 Switch(
-                    checked = checked,
                     enabled = false,
+                    checked = checked,
                     onCheckedChange = {
                         checked = it
                         role = if (checked) "Representative" else "Member"
@@ -212,12 +211,16 @@ fun SignUp(nav: NavHostController, viewModel: AuthViewModel) {
                             name = txtName,
                             email = txtEmail,
                             password = txtPas,
-                            household = "",
-                            role = role,
-                            plan = 0,
+                            householdId = "",
+                            role = "Representative",
+                            plan = 1,
                         )
-                        viewModel.signUp(context, newSignUpRequest) {
-                            nav.navigate("LogIn")
+                        viewModel.signUp(
+                            context, newSignUpRequest
+                        ) {
+                            nav.navigate("LogIn") {
+                                popUpTo("SignUp") { inclusive = true }
+                            }
                         }
                     }
                 },
