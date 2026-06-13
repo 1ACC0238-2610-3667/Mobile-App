@@ -57,7 +57,7 @@ class AuthViewModel : ViewModel() {
                     val userJson = JSONObject().apply {
                         put("id", authData.id)
                         put("name", authData.name ?: "Usuario")
-                        put("email", authData.email ?: email)
+                        put("email", email ?: email)
                         put("role", finalRole)
                         put("plan", finalPlan)
                         put("householdId", finalHouseholdId)

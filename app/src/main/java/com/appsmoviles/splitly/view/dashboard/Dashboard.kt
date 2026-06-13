@@ -44,7 +44,7 @@ fun Dashboard(viewModel: DashboardViewModel, context: Context, navController: Na
             color = Color(0xFF64748B)
         )
         Text(
-            text = viewModel.userName,
+            text = viewModel.email,
             fontSize = 24.sp,
             fontWeight = FontWeight.Bold,
             color = Color(0xFF1E293B)
