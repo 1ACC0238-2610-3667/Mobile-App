@@ -15,7 +15,9 @@ import org.json.JSONObject
 
 class DashboardViewModel : ViewModel() {
 
-    var userName by mutableStateOf("Usuario")
+    var userName by mutableStateOf("User")
+
+    var email by mutableStateOf("")
     var totalBillsCount by mutableStateOf(0)
     var totalBillsAmount by mutableStateOf(0.0)
     var totalHouseholdsCount by mutableStateOf(0)
@@ -36,7 +38,8 @@ class DashboardViewModel : ViewModel() {
             if (!userJsonStr.isNullOrEmpty()) {
                 try {
                     val json = JSONObject(userJsonStr)
-                    userName = json.optString("name", "Usuario")
+                    userName = json.optString("name", "User")
+                    email = json.optString("email", "Email")
                     userId = json.optInt("id", -1)
                 } catch (e: Exception) {
                     e.printStackTrace()

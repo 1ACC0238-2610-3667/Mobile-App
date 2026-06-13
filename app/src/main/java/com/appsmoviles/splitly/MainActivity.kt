@@ -28,8 +28,8 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        //OkHttpClientObject.init(this)
-        //CredentialsSessionManager.init(this)
+        OkHttpClientObject.init(this)
+        CredentialsSessionManager.init(this)
 
         enableEdgeToEdge()
         setContent {
