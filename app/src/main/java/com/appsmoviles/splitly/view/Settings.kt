@@ -1,7 +1,6 @@
 package com.appsmoviles.splitly.view
 
 import android.content.Context
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -19,14 +18,31 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
+import com.appsmoviles.splitly.model.beans.appmanagement.Settings
+import com.appsmoviles.splitly.model.client.CredentialsSessionManager
 import com.appsmoviles.splitly.viewmodel.SettingsViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun Settings(viewModel: SettingsViewModel, context: Context, navHostController: NavHostController) {
 
-    LaunchedEffect(Unit) {
+    DisposableEffect(Unit) {
         viewModel.loadSettings(context)
+
+        onDispose {
+            viewModel.settings?.let { currentSettings ->
+                val newSettings = Settings(
+                    currentSettings.id,
+                    currentSettings.userId,
+                    CredentialsSessionManager.getLanguage1(),
+                    CredentialsSessionManager.getDarkMode1(),
+                    CredentialsSessionManager.getNotificationEnabled1(),
+                    currentSettings.createdAt,
+                    currentSettings.updatedAt
+                )
+                viewModel.updateSettings(newSettings)
+            }
+        }
     }
 
     Scaffold(
@@ -50,14 +66,8 @@ fun Settings(viewModel: SettingsViewModel, context: Context, navHostController: 
                 .fillMaxSize()
                 .padding(paddingValues)
         ) {
-            if (viewModel.isLoading && viewModel.settings == null) {
-                CircularProgressIndicator(
-                    modifier = Modifier.align(Alignment.Center),
-                    color = Color(0xFF6366F1)
-                )
-            } else {
-                val settings = viewModel.settings
-                if (settings != null) {
+
+
                     Column(
                         modifier = Modifier
                             .fillMaxSize()
@@ -76,18 +86,21 @@ fun Settings(viewModel: SettingsViewModel, context: Context, navHostController: 
                             SettingsToggleRow(
                                 icon = Icons.Default.DarkMode,
                                 title = "Dark Mode",
-                                checked = settings.darkMode,
+                                checked = CredentialsSessionManager.getDarkMode1(),
                                 onCheckedChange = {
-                                    viewModel.updateSettings(settings.copy(darkMode = it))
+                                    CredentialsSessionManager.setDarkMode1(it)
                                 }
                             )
-                            HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), color = Color(0xFFF1F5F9))
+                            HorizontalDivider(
+                                modifier = Modifier.padding(horizontal = 16.dp),
+                                color = Color(0xFFF1F5F9)
+                            )
                             SettingsToggleRow(
                                 icon = Icons.Default.Notifications,
                                 title = "Enable Notifications",
-                                checked = settings.notificationEnabled,
+                                checked = CredentialsSessionManager.getNotificationEnabled1(),
                                 onCheckedChange = {
-                                    viewModel.updateSettings(settings.copy(notificationEnabled = it))
+                                    CredentialsSessionManager.setNotificationsState(it)
                                 }
                             )
                         }
@@ -103,33 +116,23 @@ fun Settings(viewModel: SettingsViewModel, context: Context, navHostController: 
                             SettingsActionRow(
                                 icon = Icons.Default.Language,
                                 title = "Language",
-                                value = settings.language,
+                                value = CredentialsSessionManager.getLanguage1(),
                                 onClick = {
                                     // Logic for changing language could go here
                                     // For now, let's just cycle between EN and ES as an example
-                                    val nextLang = if (settings.language == "English") "Spanish" else "English"
-                                    viewModel.updateSettings(settings.copy(language = nextLang))
+                                    val nextLang =
+                                        if (CredentialsSessionManager.getLanguage1() == "English") "Spanish" else "English"
+                                    CredentialsSessionManager.setLanguage1(nextLang)
                                 }
                             )
                         }
-                        
-                        if (viewModel.errorMessage != null) {
-                            Text(
-                                text = viewModel.errorMessage!!,
-                                color = MaterialTheme.colorScheme.error,
-                                modifier = Modifier.padding(top = 8.dp)
-                            )
-                        }
+
+
                     }
-                } else {
-                    Text(
-                        text = viewModel.errorMessage ?: "No settings found",
-                        modifier = Modifier.align(Alignment.Center)
-                    )
-                }
-            }
+
         }
     }
+
 }
 
 @Composable

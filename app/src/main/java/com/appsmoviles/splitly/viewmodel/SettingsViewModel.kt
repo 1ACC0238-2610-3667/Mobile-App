@@ -8,7 +8,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.appsmoviles.splitly.model.beans.appmanagement.Settings
 import com.appsmoviles.splitly.model.client.RetrofitClient
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.json.JSONObject
 
 class SettingsViewModel: ViewModel() {
@@ -33,7 +35,23 @@ class SettingsViewModel: ViewModel() {
                             val response = RetrofitClient.settingsWebService.getSettingByUserId(userId)
                             if (response.isSuccessful) {
                                 settings = response.body()
-                            } else {
+                            } else if(response.body() == null) {
+                                val newSettingsResponse = withContext(Dispatchers.IO){
+                                    RetrofitClient.settingsWebService.createSettings(
+                                        Settings(
+                                            id = 0,
+                                            userId = userId,
+                                            language = "",
+                                            darkMode = false,
+                                            notificationEnabled = false,
+                                            createdAt = "",
+                                            updatedAt = ""
+
+                                        ))
+                                }
+
+                                settings = newSettingsResponse.body()
+                            }else{
                                 errorMessage = "Error loading settings"
                             }
                         } catch (e: Exception) {
