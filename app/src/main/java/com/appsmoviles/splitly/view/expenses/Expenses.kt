@@ -104,13 +104,13 @@ fun Expenses(billViewModel: BillViewModel, householdViewModel: HouseholdViewMode
                     contentPadding = PaddingValues(bottom = 16.dp)
                 ) {
                     auxHouseholdBills.forEach { (householdId, bills) ->
-                        val householdName =
+                        /*val householdName =
                             householdViewModel.households.find { it?.id == householdId }?.name
-                                ?: "Household: $householdId"
+                                ?: "Household: $householdId"*/
 
                         item {
                             Text(
-                                text = householdName,
+                                text = householdId,
                                 fontSize = 18.sp,
                                 fontWeight = FontWeight.Bold,
                                 color = Color(0xFF1E293B),

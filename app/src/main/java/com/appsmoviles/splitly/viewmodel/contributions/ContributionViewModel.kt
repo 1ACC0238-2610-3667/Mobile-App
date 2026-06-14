@@ -13,6 +13,9 @@ import com.appsmoviles.splitly.model.beans.distribution.MemberContribution
 import com.appsmoviles.splitly.model.beans.householdmanagement.HouseholdMember
 import com.appsmoviles.splitly.model.client.RetrofitClient
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.util.ArrayList
@@ -25,36 +28,52 @@ class ContributionViewModel: ViewModel() {
     var contributions: MutableMap<Contribution, List<MemberContribution>> = mutableStateMapOf()
 
 
-    fun createContributionAndMemberContributions(contribution: Contribution, members: List<HouseholdMember>, totalAmount: Double){
+    fun createContributionAndMemberContributions(contribution: Contribution, householdId: String, totalAmount: Double){
 
-        viewModelScope.launch(Dispatchers.Main) {
+        viewModelScope.launch {
             isLoading = true
             errorMessage = null
 
             try {
-
-                //first need to create the contribution
+                // 1. Create the contribution
                 val responseContribution = withContext(Dispatchers.IO){
                     RetrofitClient.contributionWebService.createContribution(contribution)
                 }
 
-                //now the scawy part - the membersContributions
-                if(responseContribution.isSuccessful && responseContribution.body()!=null){
-                    members.forEach {
-                        RetrofitClient.memberContributionWebService
-                            .createMemberContribution(MemberContribution(
-                                responseContribution.body()!!.id!!,
-                                it.id,
-                                (totalAmount/members.size),
-                            ))
+                if(responseContribution.isSuccessful && responseContribution.body() != null){
+                    val createdContribution = responseContribution.body()!!
+
+                    // 2. Get members to calculate split
+                    val responseMembers = withContext(Dispatchers.IO) {
+                        RetrofitClient.householdMemberWebService.getHouseholdMembersByHouseholdId(householdId)
                     }
+
+                    if (responseMembers.isSuccessful && responseMembers.body() != null) {
+                        val members = responseMembers.body()!!
+                        val splitAmount = totalAmount / members.size
+
+                        // 3. Create member contributions in parallel
+                        coroutineScope {
+                            members.map { member ->
+                                async(Dispatchers.IO) {
+                                    RetrofitClient.memberContributionWebService
+                                        .createMemberContribution(MemberContribution(
+                                            createdContribution.id!!,
+                                            member.id,
+                                            splitAmount
+                                        ))
+                                }
+                            }.awaitAll()
+                        }
+                    } else {
+                        errorMessage = "Error fetching members: ${responseMembers.code()}"
+                    }
+                } else {
+                    errorMessage = "Error creating contribution: ${responseContribution.code()}"
                 }
-                else{
-                    errorMessage = "Error: ${responseContribution.message()} and ${responseContribution.code()}"
-                }
-            }catch (e: Exception){
+            } catch (e: Exception){
                 errorMessage = "Error: ${e.message}"
-            }finally {
+            } finally {
                 isLoading = false
             }
         }

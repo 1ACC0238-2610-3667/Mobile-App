@@ -37,6 +37,7 @@ fun HouseholdItem(household: Household?, onEdit: () -> Unit, onDelete: () -> Uni
             Column(modifier = Modifier.weight(1f)) {
                 Text(text = household!!.name, fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Color(0xFF1E293B))
                 Text(text = household!!.description, fontSize = 14.sp, color = Color(0xFF64748B))
+
                 Text(text = "Currency: ${household.currency}", fontSize = 12.sp, color = Color(0xFF94A3B8))
             }
             Row {
