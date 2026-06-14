@@ -14,6 +14,7 @@ import com.appsmoviles.splitly.viewmodel.BillViewModel
 import com.appsmoviles.splitly.viewmodel.HouseholdMemberViewModel
 import com.appsmoviles.splitly.viewmodel.household.HouseholdViewModel
 import com.appsmoviles.splitly.viewmodel.SettingsViewModel
+import com.appsmoviles.splitly.viewmodel.contributions.ContributionViewModel
 import com.appsmoviles.splitly.viewmodel.dashboard.DashboardViewModel
 
 class MainActivity : ComponentActivity() {
@@ -25,6 +26,8 @@ class MainActivity : ComponentActivity() {
     private val householdMemberViewModel by viewModels<HouseholdMemberViewModel>()
     private val billViewModel by viewModels<BillViewModel>()
 
+    private val contributionViewModel by viewModels<ContributionViewModel>()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -34,7 +37,7 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             SplitlyTheme {
-                Navigator(authViewModel, dashboardViewModel, settingsViewModel, householdViewModel, householdMemberViewModel, billViewModel, this)
+                Navigator(authViewModel, dashboardViewModel, settingsViewModel, householdViewModel, householdMemberViewModel, billViewModel, contributionViewModel, this)
             }
         }
     }
