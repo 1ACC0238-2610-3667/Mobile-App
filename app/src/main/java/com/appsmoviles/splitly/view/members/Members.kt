@@ -41,11 +41,13 @@ fun Members(memberViewModel: HouseholdMemberViewModel, householdViewModel: House
     var showDialog by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
-        if(memberViewModel.isLoading)
-            memberViewModel.getHouseholdMembersByHouseholdId(
-            householdViewModel,
-            CredentialsSessionManager.getIdFromUser()
-            )
+        if(memberViewModel.isLoading) {
+
+            if (householdViewModel.households.isEmpty())
+                householdViewModel.getHouseholdsByRepresentativeId(CredentialsSessionManager.getIdFromUser())
+
+            memberViewModel.getHouseholdMembersByHouseholdId(householdViewModel)
+        }
     }
 
     var query by remember { mutableStateOf("") }

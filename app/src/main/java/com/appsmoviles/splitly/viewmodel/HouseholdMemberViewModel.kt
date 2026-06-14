@@ -27,27 +27,22 @@ class HouseholdMemberViewModel: ViewModel() {
     var invitationResponse: Invitation? by mutableStateOf(null)
 
 
-    fun getHouseholdMembersByHouseholdId(viewModel: HouseholdViewModel, id: Int){
+    fun getHouseholdMembersByHouseholdId(viewModel: HouseholdViewModel){
             viewModelScope.launch(Dispatchers.Main) {
                 isLoading = true
                 errorMessage = null
                 try {
-
-
-                    //In case the members view is the one to be
-                    //accessed first by some weird or unknow reason
-                    if (viewModel.households.isEmpty()) {
-                        withContext(Dispatchers.IO) {
-                            viewModel.getHouseholdsByRepresentativeId(id)
-                        }
-                    } else {
                         val auxHouseholds = viewModel.households
                         val users = RetrofitClient.userWebService.getAllUsers().body() as ArrayList<User>
 
                         auxHouseholds.forEach { households ->
-                            val usersProfileListPerHousehold: ArrayList<User?> by mutableStateOf(arrayListOf())
+                            val usersProfileListPerHousehold: ArrayList<User?> by mutableStateOf(
+                                arrayListOf()
+                            )
                             val auxHouseholdMembers = RetrofitClient
-                                .householdMemberWebService.getHouseholdMembersByHouseholdId(households!!.id).body() as ArrayList<HouseholdMember>
+                                .householdMemberWebService.getHouseholdMembersByHouseholdId(
+                                    households!!.id
+                                ).body() as ArrayList<HouseholdMember>
                             auxHouseholdMembers.forEach { householdMembersList ->
                                 usersProfileListPerHousehold.add(users.find { it.id == householdMembersList.userId })
                             }
@@ -55,7 +50,7 @@ class HouseholdMemberViewModel: ViewModel() {
 
                             Log.i("HouseholdMembers", "$householdMembers")
                         }
-                    }
+
                 }catch (e: Exception){
                     errorMessage = "Error: ${e.message}"
                 }finally {

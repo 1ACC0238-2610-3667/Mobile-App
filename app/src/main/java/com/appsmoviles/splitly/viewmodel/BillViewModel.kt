@@ -17,7 +17,7 @@ import kotlin.collections.forEach
 
 class BillViewModel : ViewModel() {
 
-    var isLoading by mutableStateOf(false)
+    var isLoading by mutableStateOf(true)
 
     var errorMessage: String? by mutableStateOf(null)
 

@@ -62,7 +62,7 @@ fun Expenses(billViewModel: BillViewModel, householdViewModel: HouseholdViewMode
     val auxHouseholdBills = billViewModel.householdBills
 
     LaunchedEffect(Unit) {
-        if (userId != -1) {
+        if (userId != -1  && billViewModel.isLoading) {
             if(householdViewModel.households.isNullOrEmpty())
                 householdViewModel.getHouseholdsByRepresentativeId(userId)
             billViewModel.getAmountOfBillsByHouseholdIds(householdViewModel.households)
