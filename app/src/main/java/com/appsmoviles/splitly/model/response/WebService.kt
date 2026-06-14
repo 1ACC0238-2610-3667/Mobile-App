@@ -33,9 +33,5 @@ interface WebService {
     ): Response<User>
 
 
-    @GET("contribution/byhouseholdid/{householdId}")
-    suspend fun getContributions(
-        @Header("Authorization") token: String,
-        @Path("householdId") householdId: String
-    ): Response<List<Contribution>>
+
 }

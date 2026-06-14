@@ -24,4 +24,9 @@ interface ContributionWebService {
     suspend fun deleteContribution(
         @Path("id") id: String
     ): Response<Contribution>
+
+    @GET("contribution/bybillid/{billId}")
+    suspend fun getContributionByBillId(
+        @Path("billId") billId: String
+    ): Response<Contribution>
 }

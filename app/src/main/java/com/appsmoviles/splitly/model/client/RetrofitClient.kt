@@ -3,6 +3,8 @@ package com.appsmoviles.splitly.model.client
 import com.appsmoviles.splitly.model.response.WebService
 import com.appsmoviles.splitly.model.response.appmanagement.SettingsWebService
 import com.appsmoviles.splitly.model.response.distribution.BillWebService
+import com.appsmoviles.splitly.model.response.distribution.ContributionWebService
+import com.appsmoviles.splitly.model.response.distribution.MemberContributionWebService
 import com.appsmoviles.splitly.model.response.householdmanagement.HouseholdMemberWebService
 import com.appsmoviles.splitly.model.response.householdmanagement.HouseholdWebService
 import com.appsmoviles.splitly.model.response.householdmanagement.InvitationWebService
@@ -47,6 +49,14 @@ object RetrofitClient {
 
     val invitationWebService: InvitationWebService by lazy {
         retrofit.create(InvitationWebService::class.java)
+    }
+
+    val contributionWebService: ContributionWebService by lazy {
+        retrofit.create(ContributionWebService::class.java)
+    }
+
+    val memberContributionWebService: MemberContributionWebService  by lazy {
+        retrofit.create(MemberContributionWebService::class.java)
     }
 
 }

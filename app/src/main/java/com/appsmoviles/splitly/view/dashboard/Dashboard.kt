@@ -28,7 +28,8 @@ import java.util.Locale
 fun Dashboard(viewModel: DashboardViewModel, context: Context, navController: NavHostController) {
 
     LaunchedEffect(Unit) {
-        viewModel.loadSummary(context)
+        if(viewModel.isLoading)
+            viewModel.loadSummary(context)
     }
 
     Column(

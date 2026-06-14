@@ -72,7 +72,7 @@ fun ExpensesCard(bill: Bills){
 
             MemberInfoRow(icon = Icons.Default.Email, text = bill.description ?: "No description")
             MemberInfoRow(icon = Icons.Default.Badge, text = "Amount: ${bill.amount.toString() ?: "No amount"}")
-            MemberInfoRow(icon = Icons.Default.Badge, text = "CreatedBy: ${bill.createdBy.toString() ?: "Unknown"}")
+            //MemberInfoRow(icon = Icons.Default.Badge, text = "CreatedBy: ${bill.createdBy.toString() ?: "Unknown"}")
 
         }
     }

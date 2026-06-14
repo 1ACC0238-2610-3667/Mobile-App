@@ -15,7 +15,7 @@ import kotlinx.coroutines.withContext
 class HouseholdViewModel : ViewModel() {
 
     var household: Household? by mutableStateOf(null)
-    var isLoading by mutableStateOf(false)
+    var isLoading by mutableStateOf(true)
     var errorMessage: String? by mutableStateOf(null)
     var households: ArrayList<Household?> by mutableStateOf(arrayListOf())
 

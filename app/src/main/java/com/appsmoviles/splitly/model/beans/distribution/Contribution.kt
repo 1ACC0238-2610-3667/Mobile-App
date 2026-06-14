@@ -7,5 +7,4 @@ data class Contribution(
     var description: String?,
     var deadlineForMembers: String?,
     var strategy: Int,
-    var amount: Double
 )

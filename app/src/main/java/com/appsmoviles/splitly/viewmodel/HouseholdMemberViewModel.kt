@@ -19,7 +19,7 @@ import kotlin.collections.forEach
 
 class HouseholdMemberViewModel: ViewModel() {
 
-    var isLoading by mutableStateOf(false)
+    var isLoading by mutableStateOf(true)
     var errorMessage: String? by mutableStateOf(null)
 
     var householdMembers: MutableMap<String, ArrayList<User?>> = mutableMapOf()

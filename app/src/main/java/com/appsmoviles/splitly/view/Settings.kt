@@ -1,6 +1,7 @@
 package com.appsmoviles.splitly.view
 
 import android.content.Context
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -45,94 +46,78 @@ fun Settings(viewModel: SettingsViewModel, context: Context, navHostController: 
         }
     }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Settings", fontWeight = FontWeight.Bold) },
-                navigationIcon = {
-                    IconButton(onClick = { navHostController.popBackStack() }) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color.White
-                )
-            )
-        },
-        containerColor = Color(0xFFF8FAFC)
-    ) { paddingValues ->
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color(0xFFF8FAFC))
+            .verticalScroll(rememberScrollState())
+            .padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.fillMaxWidth()
         ) {
+            Text(
+                text = "Settings",
+                fontSize = 24.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color(0xFF1E293B)
+            )
+        }
 
+        Spacer(modifier = Modifier.height(4.dp))
 
-                    Column(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .verticalScroll(rememberScrollState())
-                            .padding(16.dp),
-                        verticalArrangement = Arrangement.spacedBy(16.dp)
-                    ) {
-                        Text(
-                            text = "Preferences",
-                            fontSize = 18.sp,
-                            fontWeight = FontWeight.SemiBold,
-                            color = Color(0xFF64748B)
-                        )
+        Text(
+            text = "Preferences",
+            fontSize = 18.sp,
+            fontWeight = FontWeight.SemiBold,
+            color = Color(0xFF64748B)
+        )
 
-                        SettingsCard {
-                            SettingsToggleRow(
-                                icon = Icons.Default.DarkMode,
-                                title = "Dark Mode",
-                                checked = CredentialsSessionManager.getDarkMode1(),
-                                onCheckedChange = {
-                                    CredentialsSessionManager.setDarkMode1(it)
-                                }
-                            )
-                            HorizontalDivider(
-                                modifier = Modifier.padding(horizontal = 16.dp),
-                                color = Color(0xFFF1F5F9)
-                            )
-                            SettingsToggleRow(
-                                icon = Icons.Default.Notifications,
-                                title = "Enable Notifications",
-                                checked = CredentialsSessionManager.getNotificationEnabled1(),
-                                onCheckedChange = {
-                                    CredentialsSessionManager.setNotificationsState(it)
-                                }
-                            )
-                        }
+        SettingsCard {
+            SettingsToggleRow(
+                icon = Icons.Default.DarkMode,
+                title = "Dark Mode",
+                checked = CredentialsSessionManager.getDarkMode1(),
+                onCheckedChange = {
+                    CredentialsSessionManager.setDarkMode1(it)
+                }
+            )
+            HorizontalDivider(
+                modifier = Modifier.padding(horizontal = 16.dp),
+                color = Color(0xFFF1F5F9)
+            )
+            SettingsToggleRow(
+                icon = Icons.Default.Notifications,
+                title = "Enable Notifications",
+                checked = CredentialsSessionManager.getNotificationEnabled1(),
+                onCheckedChange = {
+                    CredentialsSessionManager.setNotificationsState(it)
+                }
+            )
+        }
 
-                        Text(
-                            text = "Regional",
-                            fontSize = 18.sp,
-                            fontWeight = FontWeight.SemiBold,
-                            color = Color(0xFF64748B)
-                        )
+        Text(
+            text = "Regional",
+            fontSize = 18.sp,
+            fontWeight = FontWeight.SemiBold,
+            color = Color(0xFF64748B)
+        )
 
-                        SettingsCard {
-                            SettingsActionRow(
-                                icon = Icons.Default.Language,
-                                title = "Language",
-                                value = CredentialsSessionManager.getLanguage1(),
-                                onClick = {
-                                    // Logic for changing language could go here
-                                    // For now, let's just cycle between EN and ES as an example
-                                    val nextLang =
-                                        if (CredentialsSessionManager.getLanguage1() == "English") "Spanish" else "English"
-                                    CredentialsSessionManager.setLanguage1(nextLang)
-                                }
-                            )
-                        }
-
-
-                    }
-
+        SettingsCard {
+            SettingsActionRow(
+                icon = Icons.Default.Language,
+                title = "Language",
+                value = CredentialsSessionManager.getLanguage1(),
+                onClick = {
+                    val nextLang =
+                        if (CredentialsSessionManager.getLanguage1() == "English") "Spanish" else "English"
+                    CredentialsSessionManager.setLanguage1(nextLang)
+                }
+            )
         }
     }
-
 }
 
 @Composable

@@ -1,11 +1,13 @@
 package com.appsmoviles.splitly.view.expenses
 
 import android.content.Context
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -25,12 +27,9 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Snackbar
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.carousel.HorizontalMultiBrowseCarousel
 import androidx.compose.material3.carousel.rememberCarouselState
 import androidx.compose.runtime.Composable
@@ -41,7 +40,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.blur
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onGloballyPositioned
@@ -51,9 +49,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.toSize
 import com.appsmoviles.splitly.model.beans.distribution.Bills
-import com.appsmoviles.splitly.model.beans.distribution.Contribution
 import com.appsmoviles.splitly.model.client.CredentialsSessionManager
-import com.appsmoviles.splitly.view.Contributions
 import com.appsmoviles.splitly.viewmodel.BillViewModel
 import com.appsmoviles.splitly.viewmodel.household.HouseholdViewModel
 
@@ -73,62 +69,53 @@ fun Expenses(billViewModel: BillViewModel, householdViewModel: HouseholdViewMode
         }
     }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("My Bills", fontWeight = FontWeight.Bold) },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color.White
-                )
-            )
-        },
-        floatingActionButton = {
-            FloatingActionButton(
-                onClick = {
-                    showDialog = true
-                },
-                containerColor = Color(0xFF6366F1),
-                contentColor = Color.White
-            ) {
-                Icon(Icons.Default.Add, contentDescription = "Add Bill")
-            }
-        },
-        containerColor = Color(0xFFF8FAFC)
-    ){ paddingValues ->
-        Box(
-            modifier = Modifier.padding(paddingValues).fillMaxSize()
-        ){
-            if(billViewModel.isLoading){
-                CircularProgressIndicator(
-                    modifier = Modifier.align(Alignment.Center))
-            }else if(billViewModel.householdBills.isNullOrEmpty()){
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color(0xFFF8FAFC))
+    ) {
+        Column(
+            modifier = Modifier.fillMaxSize()
+        ) {
                 Text(
-                    text = "No Bills found. Crate one"
+                    text = "My Bills",
+                    fontSize = 24.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFF1E293B)
                 )
 
-            } else if (billViewModel.errorMessage != null) {
-                Snackbar(
-                    modifier = Modifier.padding(16.dp).align(Alignment.BottomCenter),
-                    containerColor = Color.Red,
-                    contentColor = Color.White
-                ) {
-                    Text(billViewModel.errorMessage!!)
+                Spacer(modifier = Modifier.height(12.dp))
+
+
+            if (billViewModel.isLoading) {
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator(color = Color(0xFF6366F1))
                 }
-            } else{
+            } else if (billViewModel.householdBills.isNullOrEmpty()) {
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    Text(
+                        text = "No Bills found. Create one",
+                        color = Color.Gray
+                    )
+                }
+            } else {
                 LazyColumn(
+                    modifier = Modifier.fillMaxSize(),
                     contentPadding = PaddingValues(bottom = 16.dp)
                 ) {
                     auxHouseholdBills.forEach { (householdId, bills) ->
-                        val householdName = householdViewModel.households.find { it?.id == householdId }?.name ?: "Household: $householdId"
+                        val householdName =
+                            householdViewModel.households.find { it?.id == householdId }?.name
+                                ?: "Household: $householdId"
 
                         item {
-                                Text(
-                                    text = householdName,
-                                    fontSize = 18.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = Color(0xFF1E2938),
-                                    modifier = Modifier.padding(start = 16.dp, top = 24.dp, bottom = 8.dp)
-                                )
+                            Text(
+                                text = householdName,
+                                fontSize = 18.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color(0xFF1E293B),
+                                modifier = Modifier.padding(start = 16.dp, top = 24.dp, bottom = 8.dp)
+                            )
                         }
 
                         item {
@@ -147,20 +134,37 @@ fun Expenses(billViewModel: BillViewModel, householdViewModel: HouseholdViewMode
                                 }
                             }
                         }
-
-
-
-
-
                     }
-
-
                 }
             }
-
-
         }
 
+        // Floating Action Button
+        FloatingActionButton(
+            onClick = {
+                showDialog = true
+            },
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .padding(24.dp),
+            containerColor = Color(0xFF6366F1),
+            contentColor = Color.White
+        ) {
+            Icon(Icons.Default.Add, contentDescription = "Add Bill")
+        }
+
+        // Error Snackbar
+        if (billViewModel.errorMessage != null) {
+            Snackbar(
+                modifier = Modifier
+                    .padding(16.dp)
+                    .align(Alignment.BottomCenter),
+                containerColor = Color.Red,
+                contentColor = Color.White
+            ) {
+                Text(billViewModel.errorMessage!!)
+            }
+        }
     }
 
 
@@ -183,7 +187,7 @@ fun Expenses(billViewModel: BillViewModel, householdViewModel: HouseholdViewMode
                 Column(
                     verticalArrangement = Arrangement.spacedBy(8.dp) ) {
                     OutlinedTextField(
-                        value = description!!,
+                        value = description,
                         label = {
                             Text(
                                 text = "Description"
@@ -195,7 +199,7 @@ fun Expenses(billViewModel: BillViewModel, householdViewModel: HouseholdViewMode
                     Box() {
 
                         OutlinedTextField(
-                            value = houseHoldId!!,
+                            value = houseHoldId,
                             onValueChange = { houseHoldId = it },
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -233,13 +237,13 @@ fun Expenses(billViewModel: BillViewModel, householdViewModel: HouseholdViewMode
 
                     OutlinedTextField(
                         value = amount.toString(),
-                        onValueChange = {amount = it.toDouble()},
+                        onValueChange = {amount = it.toDoubleOrNull() ?: 0.0},
                         modifier = Modifier.fillMaxWidth(),
                         label = {Text("Amount to Pay")}
                     )
 
                     OutlinedTextField(
-                        value = paymentDate.toString(),
+                        value = paymentDate,
                         onValueChange = {paymentDate = it},
                         modifier = Modifier.fillMaxWidth(),
                         label = {Text("YYYY-MM-DD")}
@@ -262,20 +266,10 @@ fun Expenses(billViewModel: BillViewModel, householdViewModel: HouseholdViewMode
                             updatedAt = "",
                         )
                         billViewModel.createBill(newBill)
-
-                        /*val newContribution = Contribution(
-                            id = "",
-                            billId = billViewModel.newBill!!.id,
-                            householdId = bill!!.houseHoldId,
-                            description = bill!!.description,
-                            deadlineForMembers = bill!!.paymentDate,
-                            strategy = 1,
-                            amount = bill!!.amount
-                            )*/
                         showDialog = false
 
                     },
-                    enabled = amount.toString().isNotBlank() && houseHoldId!!.isNotBlank(),
+                    enabled = amount > 0 && houseHoldId.isNotBlank(),
                     colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF6366F1))
                 ) {
                     Text("Confirm")
@@ -291,11 +285,4 @@ fun Expenses(billViewModel: BillViewModel, householdViewModel: HouseholdViewMode
         )
 
     }
-
-    /*LaunchedEffect(billViewModel.householdBills) {
-        if (billViewModel.householdBills != null) {
-            billViewModel.getAmountOfBillsByHouseholdIds(householdViewModel.households)
-        }
-    }*/
-
 }

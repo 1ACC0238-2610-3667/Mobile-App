@@ -41,10 +41,11 @@ fun Members(memberViewModel: HouseholdMemberViewModel, householdViewModel: House
     var showDialog by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
-        memberViewModel.getHouseholdMembersByHouseholdId(
+        if(memberViewModel.isLoading)
+            memberViewModel.getHouseholdMembersByHouseholdId(
             householdViewModel,
             CredentialsSessionManager.getIdFromUser()
-        )
+            )
     }
 
     var query by remember { mutableStateOf("") }
@@ -57,31 +58,24 @@ fun Members(memberViewModel: HouseholdMemberViewModel, householdViewModel: House
         }.filterValues { it.isNotEmpty() }
     }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Household Members", fontWeight = FontWeight.Bold) },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White)
-            )
-        },
-        floatingActionButton = {
-            FloatingActionButton(
-                onClick = {
-                    showDialog = true
-                },
-                containerColor = Color(0xFF6366F1),
-                contentColor = Color.White
-            ) {
-                Icon(Icons.Default.Add, contentDescription = "Add Member")
-            }
-        },
-        containerColor = Color(0xFFF8FAFC)
-    ) { paddingValues ->
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color(0xFFF8FAFC))
+    ) {
         Column(
-            modifier = Modifier
-                .padding(paddingValues)
-                .fillMaxSize()
+            modifier = Modifier.fillMaxSize()
         ) {
+                Text(
+                    text = "Household Members",
+                    fontSize = 24.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFF1E293B)
+                )
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+
             //Search Bar btw
             Box(
                 modifier = Modifier
@@ -93,7 +87,13 @@ fun Members(memberViewModel: HouseholdMemberViewModel, householdViewModel: House
                     value = query,
                     onValueChange = { query = it },
                     placeholder = { Text("Search members...", color = Color(0xFF94A3B8)) },
-                    leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, tint = Color(0xFF6366F1)) },
+                    leadingIcon = {
+                        Icon(
+                            Icons.Default.Search,
+                            contentDescription = null,
+                            tint = Color(0xFF6366F1)
+                        )
+                    },
                     singleLine = true,
                     modifier = Modifier
                         .fillMaxWidth()
@@ -117,21 +117,26 @@ fun Members(memberViewModel: HouseholdMemberViewModel, householdViewModel: House
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     Text("No members found", color = Color.Gray)
                 }
-            }else if(memberViewModel.errorMessage != null){
+            } else if (memberViewModel.errorMessage != null) {
                 Snackbar(
-                    modifier = Modifier.padding(16.dp).align(Alignment.End),
+                    modifier = Modifier
+                        .padding(16.dp)
+                        .align(Alignment.End),
                     containerColor = Color.Red,
                     contentColor = Color.White
-                ){
+                ) {
                     Text(memberViewModel.errorMessage!!)
                 }
-            }else {
+            } else {
                 LazyColumn(
+                    modifier = Modifier.fillMaxSize(),
                     contentPadding = PaddingValues(bottom = 16.dp)
                 ) {
                     filteredItems.forEach { (householdId, members) ->
-                        val householdName = householdViewModel.households.find { it?.id == householdId }?.name ?: "Household: $householdId"
-                        
+                        val householdName =
+                            householdViewModel.households.find { it?.id == householdId }?.name
+                                ?: "Household: $householdId"
+
                         item {
                             Text(
                                 text = householdName,
@@ -161,6 +166,20 @@ fun Members(memberViewModel: HouseholdMemberViewModel, householdViewModel: House
                     }
                 }
             }
+        }
+
+        // Floating Action Button
+        FloatingActionButton(
+            onClick = {
+                showDialog = true
+            },
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .padding(24.dp),
+            containerColor = Color(0xFF6366F1),
+            contentColor = Color.White
+        ) {
+            Icon(Icons.Default.Add, contentDescription = "Add Member")
         }
     }
 
