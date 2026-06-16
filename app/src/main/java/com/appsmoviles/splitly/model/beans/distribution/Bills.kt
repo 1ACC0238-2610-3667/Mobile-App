@@ -1,12 +1,12 @@
 package com.appsmoviles.splitly.model.beans.distribution
 
 data class Bills(
-    var id: String?,
-    var houseHoldId: String?,
-    var description: String?,
-    var amount: Double,
-    var createdBy: Int,
-    var paymentDate: String?,
-    var createdAt: String?,
-    var updatedAt: String?
+    val id: String? = null,
+    val houseHoldId: String? = null,
+    val description: String? = null,
+    val amount: Double? = null,
+    val createdBy: Int? = null,
+    val paymentDate: String? = null,
+    val createdAt: String? = null,
+    val updatedAt: String? = null
 )

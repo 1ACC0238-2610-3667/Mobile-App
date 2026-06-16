@@ -1,12 +1,9 @@
 package com.appsmoviles.splitly.model.beans.iam
 
 data class User(
-    var id: Int,
-    var email: String?,
-    var token: String?,
-    var houseHoldId: String?,
-    var role: String?,
-    var plan: String?,
-    var name: String?,
-    var isNewUser: Boolean
+    val id: Int? = null,
+    val email: String? = null,
+    val personName: String? = null,
+    val role: String? = null,
+    val plan: String? = null
 )

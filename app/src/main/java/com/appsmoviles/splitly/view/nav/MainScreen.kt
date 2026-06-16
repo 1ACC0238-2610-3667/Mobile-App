@@ -15,24 +15,32 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.appsmoviles.splitly.view.Contributions
-import com.appsmoviles.splitly.view.Settings
+import com.appsmoviles.splitly.view.SettingsScreen
 import com.appsmoviles.splitly.view.dashboard.Dashboard
 import com.appsmoviles.splitly.view.expenses.Expenses
 import com.appsmoviles.splitly.view.households.Households
 import com.appsmoviles.splitly.view.members.Members
+import com.appsmoviles.splitly.viewmodel.AuthViewModel
 import com.appsmoviles.splitly.viewmodel.BillViewModel
 import com.appsmoviles.splitly.viewmodel.HouseholdMemberViewModel
-import com.appsmoviles.splitly.viewmodel.household.HouseholdViewModel
 import com.appsmoviles.splitly.viewmodel.SettingsViewModel
 import com.appsmoviles.splitly.viewmodel.contributions.ContributionViewModel
 import com.appsmoviles.splitly.viewmodel.dashboard.DashboardViewModel
+import com.appsmoviles.splitly.viewmodel.household.HouseholdViewModel
 import kotlinx.coroutines.launch
 
 @Composable
-fun MainScreen(rootNav: NavHostController,
-               dashboardViewModel: DashboardViewModel, settingsViewModel: SettingsViewModel,
-               householdViewModel: HouseholdViewModel, householdMemberViewModel: HouseholdMemberViewModel,
-               billViewModel: BillViewModel, contributionViewModel: ContributionViewModel, context: Context) {
+fun MainScreen(
+    rootNav: NavHostController,
+    dashboardViewModel: DashboardViewModel,
+    settingsViewModel: SettingsViewModel,
+    householdViewModel: HouseholdViewModel,
+    householdMemberViewModel: HouseholdMemberViewModel,
+    billViewModel: BillViewModel,
+    contributionViewModel: ContributionViewModel,
+    authViewModel: AuthViewModel,
+    context: Context
+) {
     val navController = rememberNavController()
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
@@ -49,8 +57,10 @@ fun MainScreen(rootNav: NavHostController,
                     onLogOut = {
                         scope.launch {
                             drawerState.close()
-                            rootNav.navigate("LogIn") {
-                                popUpTo(0) { inclusive = true }
+                            authViewModel.logout(context) {
+                                rootNav.navigate("LogIn") {
+                                    popUpTo(0) { inclusive = true }
+                                }
                             }
                         }
                     }
@@ -74,17 +84,13 @@ fun MainScreen(rootNav: NavHostController,
                 modifier = Modifier.padding(padding)
             ) {
                 composable("Dashboard") { Dashboard(dashboardViewModel, context, navController) }
-                composable("Expenses") { Expenses(billViewModel, householdViewModel, context) }
-                composable("Households") { Households(householdViewModel, context) }
-                composable("Members") {
-                    Members(
-                        householdMemberViewModel,
-                        householdViewModel,
-                        context
-                    )
-                }
-                composable("Settings") { Settings(settingsViewModel, context, navController) }
-                composable("Contributions") { Contributions(householdViewModel, billViewModel, contributionViewModel, context) }
+                composable("Expenses") { Expenses(context, navController, contributionViewModel) }
+                composable("Households") { Households(context, navController, householdViewModel) }
+                composable("Members") { Members(context, navController, householdMemberViewModel) }
+                composable("Settings") { SettingsScreen(context, rootNav, settingsViewModel, authViewModel) }
+                composable("Contributions") { Contributions(context, navController, billViewModel) }
+
+
             }
         }
     }

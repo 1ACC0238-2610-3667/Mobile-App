@@ -2,11 +2,9 @@ package com.appsmoviles.splitly.view
 
 import android.content.Context
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -18,25 +16,16 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material.icons.filled.Receipt
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Snackbar
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.carousel.HorizontalMultiBrowseCarousel
-import androidx.compose.material3.carousel.rememberCarouselState
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -45,333 +34,99 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.onGloballyPositioned
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.unit.toSize
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.appsmoviles.splitly.model.beans.distribution.Bills
-import com.appsmoviles.splitly.model.beans.distribution.Contribution
-import com.appsmoviles.splitly.model.client.CredentialsSessionManager
-import com.appsmoviles.splitly.view.expenses.ExpensesCard
+import androidx.navigation.NavHostController
 import com.appsmoviles.splitly.viewmodel.BillViewModel
-import com.appsmoviles.splitly.viewmodel.contributions.ContributionViewModel
-import com.appsmoviles.splitly.viewmodel.household.HouseholdViewModel
-import kotlin.collections.component1
-import kotlin.collections.component2
-import kotlin.collections.mutableListOf
+import java.text.SimpleDateFormat
+import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun Contributions(householdViewModel: HouseholdViewModel, billViewModel: BillViewModel,
-                  contributionViewModel: ContributionViewModel, context: Context){
-
-    val userId = CredentialsSessionManager.getIdFromUser()
-    var showDialog by remember { mutableStateOf(false) }
-    val auxHouseholdBills = billViewModel.householdBills
+fun Contributions(
+    context: Context,
+    navController: NavHostController,
+    billViewModel: BillViewModel = viewModel()
+) {
+    var activeHouseholdId by remember { mutableStateOf("") }
 
     LaunchedEffect(Unit) {
-        if(contributionViewModel.isLoading)
-            contributionViewModel.getContributions(billViewModel.householdBills)
-
+        val prefs = context.getSharedPreferences("splitly_prefs", Context.MODE_PRIVATE)
+        activeHouseholdId = prefs.getString("householdId", "") ?: ""
+        if (activeHouseholdId.isNotEmpty()) {
+            billViewModel.getBillByHouseHoldId(activeHouseholdId)
+        }
     }
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color(0xFFF8FAFC))
-    ){
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-        ) {
-            Text(
-                text = "Contributions OverView",
-                fontWeight = FontWeight.Bold
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("Historial de Gastos", fontWeight = FontWeight.Bold) },
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White)
             )
-
-            if (contributionViewModel.isLoading) {
-                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    CircularProgressIndicator(color = Color(0xFF6366F1))
-                }
-            } else if (contributionViewModel.contributions.isNullOrEmpty()) {
-                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text(
-                        text = "No Bills found. Create one",
-                        color = Color.Gray
-                    )
-                }
-            } else {
-                LazyColumn(
-                    modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(bottom = 16.dp)
-                ) {
-
-                    auxHouseholdBills.forEach { (householdId, bills) ->
-
-                        item {
-                            Text(
-                                text = "Household: $householdId",
-                                modifier = Modifier.padding(16.dp),
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 18.sp
-                            )
-                        }
-
-                        items(bills){ bill ->
-                            Text(
-                                text = "Bill: ${bill.id}",
-                                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-                                fontWeight = FontWeight.SemiBold
-                            )
-
-                            val billContributions = contributionViewModel.contributions.entries
-                                .find { it.key.billId == bill.id }?.value ?: emptyList()
-
-                            HorizontalMultiBrowseCarousel(
-                                state = rememberCarouselState { billContributions.size },
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .height(180.dp),
-                                preferredItemWidth = 260.dp,
-                                itemSpacing = 12.dp,
-                                contentPadding = PaddingValues(horizontal = 16.dp)
-                            ) { index ->
-                                val contribution = billContributions[index]
-                                Card(
-                                    modifier = Modifier.fillMaxSize(),
-                                    colors = CardDefaults.cardColors(containerColor = Color.White),
-                                    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-                                    shape = RoundedCornerShape(16.dp)
-                                ) {
-                                    Column(
-                                        modifier = Modifier
-                                            .padding(16.dp)
-                                            .fillMaxSize(),
-                                        verticalArrangement = Arrangement.Center,
-                                        horizontalAlignment = Alignment.CenterHorizontally
-                                    ) {
-                                        Text(text = "Member ID", fontSize = 12.sp, color = Color.Gray)
-                                        Text(text = contribution.memberId, fontWeight = FontWeight.Bold)
-                                        Spacer(modifier = Modifier.height(8.dp))
-                                        Text(text = "Amount", fontSize = 12.sp, color = Color.Gray)
-                                        Text(
-                                            text = "$${contribution.amount}",
-                                            color = Color(0xFF6366F1),
-                                            fontWeight = FontWeight.Bold,
-                                            fontSize = 20.sp
-                                        )
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
+        },
+        containerColor = Color(0xFFF8FAFC)
+    ) { padding ->
+        if (activeHouseholdId.isEmpty()) {
+            Box(modifier = Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
+                Text("Selecciona un hogar en 'Mis Hogares'", color = Color.Gray)
             }
+        } else if (billViewModel.isLoading) {
+            Box(modifier = Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
+                CircularProgressIndicator(color = Color(0xFF6366F1))
+            }
+        } else {
+            val bills = billViewModel.billsList
 
-
-        }
-
-        // Floating Action Button
-        FloatingActionButton(
-            onClick = {
-                showDialog = true
-            },
-            modifier = Modifier
-                .align(Alignment.BottomEnd)
-                .padding(24.dp),
-            containerColor = Color(0xFF6366F1),
-            contentColor = Color.White
-        ) {
-            Icon(Icons.Default.Add, contentDescription = "Add Contribution")
-        }
-
-        // Error Snackbar
-        if (contributionViewModel.errorMessage != null) {
-            Snackbar(
-                modifier = Modifier
-                    .padding(16.dp)
-                    .align(Alignment.BottomCenter),
-                containerColor = Color.Red,
-                contentColor = Color.White
+            LazyColumn(
+                modifier = Modifier.fillMaxSize().padding(padding).padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                Text(contributionViewModel.errorMessage!!)
+                item {
+                    Text("Todos los recibos creados en este hogar:", color = Color(0xFF64748B), fontSize = 14.sp)
+                    Spacer(modifier = Modifier.height(8.dp))
+                }
+
+                if (bills.isEmpty()) {
+                    item { Text("No has registrado ningún gasto.", color = Color.Gray) }
+                } else {
+                    items(bills.filterNotNull()) { bill ->
+                        Card(
+                            modifier = Modifier.fillMaxWidth(),
+                            colors = CardDefaults.cardColors(containerColor = Color.White),
+                            elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(16.dp).fillMaxWidth(),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Box(
+                                    modifier = Modifier.background(Color(0xFFFEF3C7), RoundedCornerShape(8.dp)).padding(10.dp)
+                                ) {
+                                    Icon(Icons.Default.Receipt, contentDescription = null, tint = Color(0xFFD97706))
+                                }
+                                Spacer(modifier = Modifier.width(16.dp))
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text(text = bill.description ?: "Gasto", fontWeight = FontWeight.Bold, fontSize = 16.sp, color = Color(0xFF1E293B))
+
+                                    val dateStr = try {
+                                        val parser = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.getDefault())
+                                        val formatter = SimpleDateFormat("dd MMM, yyyy", Locale.getDefault())
+                                        val date = parser.parse(bill.paymentDate ?: "")
+                                        if (date != null) formatter.format(date) else "Sin fecha"
+                                    } catch (e: Exception) { "Sin fecha" }
+
+                                    Text(text = dateStr, fontSize = 13.sp, color = Color(0xFF64748B))
+                                }
+                                Text(text = "S/ ${"%.2f".format(bill.amount ?: 0.0)}", fontWeight = FontWeight.ExtraBold, fontSize = 16.sp, color = Color(0xFF1E293B))
+                            }
+                        }
+                    }
+                }
             }
         }
     }
-
-    if(showDialog){
-
-        var houseHoldId: String by remember { mutableStateOf("") }
-        var billId: String by remember { mutableStateOf("") }
-        var description: String by remember { mutableStateOf("") }
-        var amount: Double by remember { mutableStateOf(-1.00) }
-        var paymentDate: String by remember { mutableStateOf("") }
-        var billsByHousehold: List<Bills?> by remember { mutableStateOf(arrayListOf()) }
-
-        //For the dd menu of HHolds
-        var expanded by remember { mutableStateOf(false) }
-        var expanded2 by remember { mutableStateOf(false) }
-
-
-        var dropdownMenuFieldSize by remember { mutableStateOf(Size.Zero) }
-
-        AlertDialog(
-            onDismissRequest = { showDialog = false },
-            title = {Text("Create New Bill")},
-            text = {
-                Column(
-                    verticalArrangement = Arrangement.spacedBy(8.dp) ) {
-                    OutlinedTextField(
-                        value = description,
-                        label = {
-                            Text(
-                                text = "Description"
-                            )
-                        },
-                        onValueChange = { description = it },
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                    Box() {
-
-                        OutlinedTextField(
-                            value = houseHoldId,
-                            onValueChange = { newValue ->
-                                houseHoldId = newValue;
-                                billsByHousehold = billViewModel.householdBills[houseHoldId] ?: emptyList<Bills>()
-                                            },
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .onGloballyPositioned { coordinates ->
-                                    //to set ddm with the same size as the outlined text field
-                                    dropdownMenuFieldSize = coordinates.size.toSize()
-                                },
-                            label = { Text("Household") },
-                            trailingIcon = {
-                                Icon(
-                                    Icons.Default.MoreVert, "Content Description",
-                                    Modifier.clickable { expanded = !expanded })
-                            }
-
-                        )
-
-                        DropdownMenu(
-                            expanded = expanded,
-                            onDismissRequest = { expanded = false },
-                            modifier = Modifier
-                                .width(with(LocalDensity.current) { dropdownMenuFieldSize.width.toDp() })
-                        ) {
-                            householdViewModel.households.forEach { household ->
-                                DropdownMenuItem(
-                                    text = { Text(text = household!!.id) },
-                                    onClick = {
-                                        houseHoldId = household!!.id
-                                        expanded = false
-                                    }
-                                )
-                            }
-
-                        }
-                    }
-
-
-
-                    Box() {
-
-
-                        OutlinedTextField(
-                            value = billId,
-                            onValueChange = { billId = it },
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .onGloballyPositioned { coordinates ->
-                                    //to set ddm with the same size as the outlined text field
-                                    dropdownMenuFieldSize = coordinates.size.toSize()
-                                },
-                            label = { Text("Bill") },
-                            trailingIcon = {
-                                Icon(
-                                    Icons.Default.MoreVert, "Content Description",
-                                    Modifier.clickable { expanded2 = !expanded2 })
-                            }
-
-                        )
-
-                        DropdownMenu(
-                            expanded = expanded2,
-                            onDismissRequest = { expanded2 = false },
-                            modifier = Modifier
-                                .width(with(LocalDensity.current) { dropdownMenuFieldSize.width.toDp() })
-                        ) {
-                            billsByHousehold.forEach {
-                                DropdownMenuItem(
-                                    text = { Text(text = it!!.id!!) },
-                                    onClick = {
-                                        billId = it!!.id!!
-                                        amount = it.amount
-                                        expanded2 = false
-                                    }
-                                )
-                            }
-
-                        }
-                    }
-
-
-
-                    OutlinedTextField(
-                        enabled = false,
-                        value = amount.toString(),
-                        onValueChange = {},
-                        modifier = Modifier.fillMaxWidth(),
-                        label = {
-                            Text("Amount to Pay")}
-                    )
-
-                    OutlinedTextField(
-                        value = paymentDate,
-                        onValueChange = {paymentDate = it},
-                        modifier = Modifier.fillMaxWidth(),
-                        label = {Text("YYYY-MM-DD")}
-
-                    )
-
-                }
-            },
-            confirmButton = {
-                Button(
-                    onClick = {
-                        val newContribution = Contribution(
-                            id = "",
-                            billId = billId,
-                            householdId = houseHoldId,
-                            description = description,
-                            deadlineForMembers = billsByHousehold.find { it!!.id == billId }!!.paymentDate,
-                            strategy = 0
-                        )
-                        contributionViewModel.createContributionAndMemberContributions(newContribution, houseHoldId, amount)
-                        showDialog = false
-
-                    },
-                    enabled = amount > 0 && houseHoldId.isNotBlank(),
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF6366F1))
-                ) {
-                    Text("Confirm")
-                }
-
-            },
-            dismissButton = {
-                TextButton(onClick = {showDialog = false}) {
-                    Text("Cancel")
-                }
-
-            }
-        )
-
-    }
-
 }

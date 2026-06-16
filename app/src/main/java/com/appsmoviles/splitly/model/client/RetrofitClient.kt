@@ -14,7 +14,7 @@ import retrofit2.converter.gson.GsonConverterFactory
 
 object RetrofitClient {
     private val retrofit = Retrofit.Builder()
-        .baseUrl("https://harmonix-mobile-backend.onrender.com/api/v1/")
+        .baseUrl("http://192.168.1.31:5070/api/v1/")
         .client(OkHttpClientObject.getClient())
         .addConverterFactory(GsonConverterFactory.create())
         .build()

@@ -1,21 +1,17 @@
 package com.appsmoviles.splitly.viewmodel
 
-import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.appsmoviles.splitly.model.beans.householdmanagement.HouseholdMember
+import com.appsmoviles.splitly.model.beans.householdmanagement.Household
 import com.appsmoviles.splitly.model.beans.householdmanagement.Invitation
 import com.appsmoviles.splitly.model.beans.iam.User
 import com.appsmoviles.splitly.model.client.RetrofitClient
-import com.appsmoviles.splitly.viewmodel.household.HouseholdViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.util.ArrayList
-import kotlin.collections.forEach
 
 class HouseholdMemberViewModel: ViewModel() {
 
@@ -23,67 +19,66 @@ class HouseholdMemberViewModel: ViewModel() {
     var errorMessage: String? by mutableStateOf(null)
 
     var householdMembers: MutableMap<String, ArrayList<User?>> = mutableMapOf()
-
     var invitationResponse: Invitation? by mutableStateOf(null)
 
-
-    fun getHouseholdMembersByHouseholdId(viewModel: HouseholdViewModel){
-            viewModelScope.launch(Dispatchers.Main) {
+    fun getHouseholdMembersByHouseholdId(households: List<Household?>) {
+        viewModelScope.launch(Dispatchers.IO) { // Debe correr en IO
+            withContext(Dispatchers.Main) {
                 isLoading = true
                 errorMessage = null
-                try {
-                        val auxHouseholds = viewModel.households
-                        val users = RetrofitClient.userWebService.getAllUsers().body() as ArrayList<User>
+            }
+            try {
+                val usersRes = RetrofitClient.userWebService.getAllUsers()
+                val users = if (usersRes.isSuccessful && usersRes.body() != null) usersRes.body()!! else arrayListOf()
 
-                        auxHouseholds.forEach { households ->
-                            val usersProfileListPerHousehold: ArrayList<User?> by mutableStateOf(
-                                arrayListOf()
-                            )
-                            val auxHouseholdMembers = RetrofitClient
-                                .householdMemberWebService.getHouseholdMembersByHouseholdId(
-                                    households!!.id
-                                ).body() as ArrayList<HouseholdMember>
-                            auxHouseholdMembers.forEach { householdMembersList ->
-                                usersProfileListPerHousehold.add(users.find { it.id == householdMembersList.userId })
-                            }
-                            householdMembers[households.id] = usersProfileListPerHousehold
+                for (household in households) {
+                    val hId = household?.id ?: continue
 
-                            Log.i("HouseholdMembers", "$householdMembers")
+                    val auxHouseholdMembersRes = RetrofitClient.householdMemberWebService.getHouseholdMembersByHouseholdId(hId)
+                    if (auxHouseholdMembersRes.isSuccessful && auxHouseholdMembersRes.body() != null) {
+                        val auxHouseholdMembers = auxHouseholdMembersRes.body()!!
+
+                        val usersProfileListPerHousehold = arrayListOf<User?>()
+                        for (hm in auxHouseholdMembers) {
+                            usersProfileListPerHousehold.add(users.find { it.id == hm.userId })
                         }
 
-                }catch (e: Exception){
+                        householdMembers[hId] = usersProfileListPerHousehold
+                    }
+                }
+
+                withContext(Dispatchers.Main) { isLoading = false }
+            } catch (e: Exception) {
+                withContext(Dispatchers.Main) {
                     errorMessage = "Error: ${e.message}"
-                }finally {
                     isLoading = false
                 }
             }
+        }
     }
 
-    fun createInvitation(invitation: Invitation){
-        viewModelScope.launch(Dispatchers.Main) {
-            isLoading = true
-            errorMessage = null
-
+    fun createInvitation(invitation: Invitation) {
+        viewModelScope.launch(Dispatchers.IO) {
+            withContext(Dispatchers.Main) {
+                isLoading = true
+                errorMessage = null
+            }
             try {
-                val response = withContext(Dispatchers.IO){
-                    RetrofitClient.invitationWebService.createInvitation(invitation)
-                }
-
-                Log.d("Invitation Response", "$response")
-
-                if(response.isSuccessful && response.body() != null ){
-                     invitationResponse = response.body()
-                }else{
-                    errorMessage = "Error: ${response.code()} Message: ${response.message()}"
+                val response = RetrofitClient.invitationWebService.createInvitation(invitation)
+                withContext(Dispatchers.Main) {
+                    if (response.isSuccessful && response.body() != null) {
+                        invitationResponse = response.body()
+                    } else {
+                        errorMessage = "Error: ${response.code()} Message: ${response.message()}"
+                    }
+                    isLoading = false
                 }
             } catch (e: Exception) {
-                errorMessage = "Error: ${e.message}"
-            }finally {
-                isLoading = false
+                withContext(Dispatchers.Main) {
+                    errorMessage = "Error: ${e.message}"
+                    isLoading = false
+                }
             }
         }
-
     }
-
-
 }

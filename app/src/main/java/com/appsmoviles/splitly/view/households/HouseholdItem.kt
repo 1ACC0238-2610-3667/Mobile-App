@@ -23,7 +23,7 @@ import androidx.compose.ui.unit.sp
 import com.appsmoviles.splitly.model.beans.householdmanagement.Household
 
 @Composable
-fun HouseholdItem(household: Household?, onEdit: () -> Unit, onDelete: () -> Unit) {
+fun HouseholdItem(household: Household, onEdit: () -> Unit, onDelete: () -> Unit) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(containerColor = Color.White),
@@ -35,10 +35,10 @@ fun HouseholdItem(household: Household?, onEdit: () -> Unit, onDelete: () -> Uni
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Column(modifier = Modifier.weight(1f)) {
-                Text(text = household!!.name, fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Color(0xFF1E293B))
-                Text(text = household!!.description, fontSize = 14.sp, color = Color(0xFF64748B))
+                Text(text = household.name ?: "Sin Nombre", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Color(0xFF1E293B))
+                Text(text = household.description ?: "Sin descripción", fontSize = 14.sp, color = Color(0xFF64748B))
 
-                Text(text = "Currency: ${household.currency}", fontSize = 12.sp, color = Color(0xFF94A3B8))
+                Text(text = "Moneda: ${household.currency ?: "PEN"}", fontSize = 12.sp, color = Color(0xFF94A3B8))
             }
             Row {
                 IconButton(onClick = onEdit) {

@@ -213,7 +213,7 @@ fun SignUp(nav: NavHostController, viewModel: AuthViewModel) {
                             password = txtPas,
                             householdId = "",
                             role = "Representative",
-                            plan = 1,
+                            plan = 2,
                         )
                         viewModel.signUp(
                             context, newSignUpRequest

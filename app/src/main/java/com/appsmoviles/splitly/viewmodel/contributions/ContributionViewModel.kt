@@ -6,11 +6,12 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.appsmoviles.splitly.model.beans.distribution.Bills
 import com.appsmoviles.splitly.model.beans.distribution.Contribution
+import com.appsmoviles.splitly.model.beans.distribution.CreateBillResource
+import com.appsmoviles.splitly.model.beans.distribution.CreateContributionResource
+import com.appsmoviles.splitly.model.beans.distribution.CreateMemberContributionResource
 import com.appsmoviles.splitly.model.beans.distribution.MemberContribution
-import com.appsmoviles.splitly.model.beans.householdmanagement.HouseholdMember
 import com.appsmoviles.splitly.model.client.RetrofitClient
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
@@ -18,109 +19,115 @@ import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.util.ArrayList
-import kotlin.collections.forEach
 
 class ContributionViewModel: ViewModel() {
 
-    var isLoading by mutableStateOf(true)
+    var isLoading by mutableStateOf(false)
     var errorMessage: String? by mutableStateOf(null)
     var contributions: MutableMap<Contribution, List<MemberContribution>> = mutableStateMapOf()
 
-
-    fun createContributionAndMemberContributions(contribution: Contribution, householdId: String, totalAmount: Double){
-
-        viewModelScope.launch {
-            isLoading = true
-            errorMessage = null
+    fun createFullExpense(
+        householdId: String,
+        description: String,
+        totalAmount: Double,
+        creatorId: Int,
+        paymentDate: String,
+        deadline: String,
+        onSuccess: () -> Unit
+    ) {
+        viewModelScope.launch(Dispatchers.IO) {
+            withContext(Dispatchers.Main) {
+                isLoading = true
+                errorMessage = null
+            }
 
             try {
-                // 1. Create the contribution
-                val responseContribution = withContext(Dispatchers.IO){
-                    RetrofitClient.contributionWebService.createContribution(contribution)
+                val membersRes = RetrofitClient.householdMemberWebService.getHouseholdMembersByHouseholdId(householdId)
+                val members = membersRes.body() ?: emptyList()
+
+                if (members.isEmpty()) {
+                    throw Exception("No hay miembros en este hogar. Invita a alguien antes de crear gastos.")
                 }
 
-                if(responseContribution.isSuccessful && responseContribution.body() != null){
-                    val createdContribution = responseContribution.body()!!
+                val newBill = CreateBillResource(
+                    houseHoldId = householdId,
+                    description = description,
+                    amount = totalAmount,
+                    createdBy = creatorId,
+                    paymentDate = paymentDate
+                )
+                val billRes = RetrofitClient.billWebService.createBill(newBill)
+                if (!billRes.isSuccessful || billRes.body() == null) throw Exception("Error al crear Recibo")
+                val createdBill = billRes.body()!!
 
-                    // 2. Get members to calculate split
-                    val responseMembers = withContext(Dispatchers.IO) {
-                        RetrofitClient.householdMemberWebService.getHouseholdMembersByHouseholdId(householdId)
-                    }
+                val newContribution = CreateContributionResource(
+                    billId = createdBill.id!!,
+                    householdId = householdId,
+                    description = description,
+                    deadlineForMembers = deadline,
+                    strategy = 1
+                )
+                val contribRes = RetrofitClient.contributionWebService.createContribution(newContribution)
+                if (!contribRes.isSuccessful || contribRes.body() == null) throw Exception("Error al crear Regla de División")
+                val createdContrib = contribRes.body()!!
 
-                    if (responseMembers.isSuccessful && responseMembers.body() != null) {
-                        val members = responseMembers.body()!!
-                        val splitAmount = totalAmount / members.size
+                val splitAmount = totalAmount / members.size
 
-                        // 3. Create member contributions in parallel
-                        coroutineScope {
-                            members.map { member ->
-                                async(Dispatchers.IO) {
-                                    RetrofitClient.memberContributionWebService
-                                        .createMemberContribution(MemberContribution(
-                                            createdContribution.id!!,
-                                            member.id,
-                                            splitAmount
-                                        ))
-                                }
-                            }.awaitAll()
+                coroutineScope {
+                    val deferreds = members.map { member ->
+                        async(Dispatchers.IO) {
+                            val mc = CreateMemberContributionResource(
+                                contributionId = createdContrib.id!!,
+                                memberId = member.id!!,
+                                amount = splitAmount
+                            )
+                            val mcRes = RetrofitClient.memberContributionWebService.createMemberContribution(mc)
+                            if (!mcRes.isSuccessful) throw Exception("Fallo al asignar cuota al miembro ${member.id}")
                         }
-                    } else {
-                        errorMessage = "Error fetching members: ${responseMembers.code()}"
                     }
-                } else {
-                    errorMessage = "Error creating contribution: ${responseContribution.code()}"
+                    deferreds.awaitAll()
                 }
-            } catch (e: Exception){
-                errorMessage = "Error: ${e.message}"
-            } finally {
-                isLoading = false
+
+                withContext(Dispatchers.Main) {
+                    isLoading = false
+                    onSuccess()
+                }
+
+            } catch (e: Exception) {
+                withContext(Dispatchers.Main) {
+                    errorMessage = e.message
+                    isLoading = false
+                }
             }
         }
     }
 
     fun getContributions(billsPerHousehold: MutableMap<String, ArrayList<Bills>>){
-
         viewModelScope.launch {
             isLoading = true
             errorMessage = null
-
             try {
-
-
                 withContext(Dispatchers.IO){
-                    //iterate in bills perHouseholdMap
                     billsPerHousehold.forEach { (_, bills) ->
-                        //iterate in bill
                         for(bill in bills){
-
                             val responseContribution = RetrofitClient.contributionWebService.getContributionByBillId(bill.id!!)
-
-                            if(responseContribution.isSuccessful) {
+                            if(responseContribution.isSuccessful && responseContribution.body() != null) {
                                 val contributionEntity = responseContribution.body() as Contribution
-
-                                withContext(Dispatchers.Main) {
-                                    contributions[contributionEntity] =
-                                        RetrofitClient.memberContributionWebService
-                                            .getMemberContributionsByContributionId(
-                                                contributionEntity.id!!
-                                            )
-                                            .body()!!
+                                val mcRes = RetrofitClient.memberContributionWebService.getMemberContributionsByContributionId(contributionEntity.id!!)
+                                if (mcRes.isSuccessful && mcRes.body() != null) {
+                                    withContext(Dispatchers.Main) {
+                                        contributions[contributionEntity] = mcRes.body()!!
+                                    }
                                 }
-
                             }
                         }
                     }
                 }
-            }catch (e: Exception){
-                errorMessage = "Error: ${e.message}"
-            }
-            finally {
+            } catch (e: Exception){
+                errorMessage = "Error al cargar historial: ${e.message}"
+            } finally {
                 isLoading = false
             }
-
-
         }
-
     }
 }

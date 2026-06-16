@@ -2,284 +2,139 @@ package com.appsmoviles.splitly.view.members
 
 import android.content.Context
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardActions
-import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material.icons.filled.Search
-import androidx.compose.material3.*
-import androidx.compose.material3.carousel.HorizontalMultiBrowseCarousel
-import androidx.compose.material3.carousel.rememberCarouselState
-import androidx.compose.runtime.*
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.onGloballyPositioned
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.unit.toSize
-import com.appsmoviles.splitly.model.beans.householdmanagement.Invitation
-import com.appsmoviles.splitly.model.client.CredentialsSessionManager
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavHostController
+import com.appsmoviles.splitly.model.beans.householdmanagement.Household
+import com.appsmoviles.splitly.model.beans.iam.User
 import com.appsmoviles.splitly.viewmodel.HouseholdMemberViewModel
-import com.appsmoviles.splitly.viewmodel.household.HouseholdViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun Members(memberViewModel: HouseholdMemberViewModel, householdViewModel: HouseholdViewModel, context: Context) {
-
-    var showDialog by remember { mutableStateOf(false) }
+fun Members(
+    context: Context,
+    navController: NavHostController,
+    viewModel: HouseholdMemberViewModel = viewModel()
+) {
+    var activeHouseholdId by remember { mutableStateOf("") }
 
     LaunchedEffect(Unit) {
-        if(memberViewModel.isLoading) {
+        val prefs = context.getSharedPreferences("splitly_prefs", Context.MODE_PRIVATE)
+        activeHouseholdId = prefs.getString("householdId", "") ?: ""
 
-            if (householdViewModel.households.isEmpty())
-                householdViewModel.getHouseholdsByRepresentativeId(CredentialsSessionManager.getIdFromUser())
-
-            memberViewModel.getHouseholdMembersByHouseholdId(householdViewModel)
+        if (activeHouseholdId.isNotEmpty()) {
+            viewModel.getHouseholdMembersByHouseholdId(listOf(Household(id = activeHouseholdId)))
         }
     }
 
-    var query by remember { mutableStateOf("") }
-    val auxHouseholdMembers = memberViewModel.householdMembers
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("Miembros del Hogar", fontWeight = FontWeight.Bold) },
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White)
+            )
+        },
+        containerColor = Color(0xFFF8FAFC)
+    ) { padding ->
+        if (activeHouseholdId.isEmpty()) {
+            Box(modifier = Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
+                Text("Ve a 'Mis Hogares' y selecciona uno para administrar.", color = Color.Gray)
+            }
+        } else if (viewModel.isLoading) {
+            Box(modifier = Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
+                CircularProgressIndicator(color = Color(0xFF6366F1))
+            }
+        } else {
+            val members = viewModel.householdMembers[activeHouseholdId] ?: emptyList()
 
-    val filteredItems = remember(query, auxHouseholdMembers) {
-        if (query.isBlank()) auxHouseholdMembers
-        else auxHouseholdMembers.mapValues { (_, values) ->
-            values.filter { it?.name?.contains(query, ignoreCase = true) == true }
-        }.filterValues { it.isNotEmpty() }
-    }
-
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color(0xFFF8FAFC))
-    ) {
-        Column(
-            modifier = Modifier.fillMaxSize()
-        ) {
-                Text(
-                    text = "Household Members",
-                    fontSize = 24.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color(0xFF1E293B)
-                )
-
-                Spacer(modifier = Modifier.height(24.dp))
-
-
-            //Search Bar btw
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(Color.White)
-                    .padding(horizontal = 16.dp, vertical = 8.dp)
+            LazyColumn(
+                modifier = Modifier.fillMaxSize().padding(padding).padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                OutlinedTextField(
-                    value = query,
-                    onValueChange = { query = it },
-                    placeholder = { Text("Search members...", color = Color(0xFF94A3B8)) },
-                    leadingIcon = {
-                        Icon(
-                            Icons.Default.Search,
-                            contentDescription = null,
-                            tint = Color(0xFF6366F1)
-                        )
-                    },
-                    singleLine = true,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clip(RoundedCornerShape(12.dp)),
-                    keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Search),
-                    keyboardActions = KeyboardActions(onSearch = {}),
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = Color(0xFF6366F1),
-                        unfocusedBorderColor = Color(0xFFE2E8F0),
-                        focusedContainerColor = Color(0xFFF1F5F9),
-                        unfocusedContainerColor = Color(0xFFF1F5F9)
-                    )
-                )
-            }
-
-            if (memberViewModel.isLoading) {
-                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    CircularProgressIndicator(color = Color(0xFF6366F1))
+                item {
+                    Text("Integrantes activos en esta casa:", color = Color(0xFF64748B), fontSize = 14.sp)
+                    Spacer(modifier = Modifier.height(8.dp))
                 }
-            } else if (filteredItems.isEmpty()) {
-                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text("No members found", color = Color.Gray)
-                }
-            } else if (memberViewModel.errorMessage != null) {
-                Snackbar(
-                    modifier = Modifier
-                        .padding(16.dp)
-                        .align(Alignment.End),
-                    containerColor = Color.Red,
-                    contentColor = Color.White
-                ) {
-                    Text(memberViewModel.errorMessage!!)
-                }
-            } else {
-                LazyColumn(
-                    modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(bottom = 16.dp)
-                ) {
-                    filteredItems.forEach { (householdId, members) ->
-                        /*val householdName =
-                            householdViewModel.households.find { it?.id == householdId }?.name
-                                ?: "Household: $householdId"*/
 
-                        item {
-                            Text(
-                                text = householdId,
-                                fontSize = 18.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = Color(0xFF1E293B),
-                                modifier = Modifier.padding(start = 16.dp, top = 24.dp, bottom = 8.dp)
-                            )
-                        }
-
-                        item {
-                            HorizontalMultiBrowseCarousel(
-                                state = rememberCarouselState { members.size },
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .height(180.dp),
-                                preferredItemWidth = 260.dp,
-                                itemSpacing = 12.dp,
-                                contentPadding = PaddingValues(horizontal = 16.dp)
-                            ) { index ->
-                                val member = members[index]
-                                if (member != null) {
-                                    MemberCard(user = member, index)
-                                }
-                            }
-                        }
+                if (members.isEmpty()) {
+                    item { Text("No hay miembros unidos todavía.", color = Color.Gray) }
+                } else {
+                    items(members.filterNotNull()) { user ->
+                        MemberItemCard(user)
                     }
                 }
             }
         }
-
-        // Floating Action Button
-        FloatingActionButton(
-            onClick = {
-                showDialog = true
-            },
-            modifier = Modifier
-                .align(Alignment.BottomEnd)
-                .padding(24.dp),
-            containerColor = Color(0xFF6366F1),
-            contentColor = Color.White
-        ) {
-            Icon(Icons.Default.Add, contentDescription = "Add Member")
-        }
-    }
-
-    if(showDialog){
-
-        var email by remember { mutableStateOf("") }
-        var householdId by remember { mutableStateOf("") }
-        var description by remember { mutableStateOf("") }
-
-        //For the dd menu of HHolds
-        var expanded by remember { mutableStateOf(false) }
-
-        var dropdownMenuFieldSize by remember { mutableStateOf(Size.Zero) }
-
-        AlertDialog(
-            onDismissRequest = { showDialog = false },
-            title = {Text("Invite New Member")},
-            text = {
-                Column(
-                    verticalArrangement = Arrangement.spacedBy(8.dp) ) {
-                    OutlinedTextField(
-                        value = email,
-                        onValueChange = {email = it},
-                        label = {Text("Email")},
-                        modifier = Modifier.fillMaxWidth()
-                    )
-
-                    OutlinedTextField(
-                        value = description,
-                        onValueChange = {description = it},
-                        label = {Text("Description")},
-                        modifier = Modifier.fillMaxWidth()
-                    )
-
-                    OutlinedTextField(
-                        value = householdId,
-                        onValueChange = {householdId = it},
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .onGloballyPositioned{ coordinates ->
-                                //to set ddm with the same size as the outlined text field
-                                dropdownMenuFieldSize = coordinates.size.toSize()
-                            },
-                        label = {Text("Household")},
-                        trailingIcon = {
-                            Icon(Icons.Default.MoreVert, "Cotent Description",
-                                Modifier.clickable{ expanded = !expanded})
-                        }
-
-                    )
-
-                    DropdownMenu(
-                        expanded = expanded,
-                        onDismissRequest = {expanded = false},
-                        modifier = Modifier
-                            .width(with(LocalDensity.current){dropdownMenuFieldSize.width.toDp()})
-                    ) {
-                        householdViewModel.households.forEach {  household ->
-                            DropdownMenuItem(
-                                text = {Text(text = household!!.id)},
-                                onClick = {
-                                    householdId =household!!.id
-                                    expanded = false
-                                }
-                            )
-                        }
-
-                    }
-
-                }
-            },
-            confirmButton = {
-                Button(
-                    onClick = {
-                        val newInvitation = Invitation(
-                            email = email,
-                            householdId = householdId,
-                            description = description
-                        )
-                        memberViewModel.createInvitation(newInvitation)
-                        showDialog = false
-                    },
-                    enabled = email.isNotBlank() && householdId.isNotBlank(),
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF6366F1))
-                ) {
-                    Text("Confirm")
-                }
-
-            },
-            dismissButton = {
-                TextButton(onClick = {showDialog = false}) {
-                    Text("Cancel")
-                }
-
-            }
-        )
-
     }
 }
 
-
+@Composable
+fun MemberItemCard(user: User) {
+    val displayName = user.personName?.takeIf { it.isNotEmpty() } ?: "Usuario Nuevo"
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
+    ) {
+        Row(
+            modifier = Modifier.padding(16.dp).fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Box(
+                modifier = Modifier.size(48.dp).background(Color(0xFFE0F2FE), CircleShape),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = displayName.take(1).uppercase(),
+                    color = Color(0xFF0284C7),
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 20.sp
+                )
+            }
+            Spacer(modifier = Modifier.width(16.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                Text(text = displayName, fontWeight = FontWeight.Bold, fontSize = 16.sp, color = Color(0xFF1E293B))
+                Text(text = user.email ?: "Sin correo", fontSize = 13.sp, color = Color(0xFF64748B))            }
+            // Etiqueta de Rol
+            Box(
+                modifier = Modifier.background(Color(0xFFF1F5F9), RoundedCornerShape(12.dp)).padding(horizontal = 8.dp, vertical = 4.dp)
+            ) {
+                Text(text = user.role ?: "Member", fontSize = 11.sp, color = Color(0xFF475569), fontWeight = FontWeight.Medium)
+            }
+        }
+    }
+}

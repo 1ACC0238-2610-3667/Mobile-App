@@ -1,190 +1,148 @@
 package com.appsmoviles.splitly.view
 
 import android.content.Context
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.DarkMode
-import androidx.compose.material.icons.filled.Language
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material.icons.filled.Logout
+import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchDefaults
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
-import com.appsmoviles.splitly.model.beans.appmanagement.Settings
-import com.appsmoviles.splitly.model.client.CredentialsSessionManager
+import com.appsmoviles.splitly.viewmodel.AuthViewModel
 import com.appsmoviles.splitly.viewmodel.SettingsViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun Settings(viewModel: SettingsViewModel, context: Context, navHostController: NavHostController) {
-
-    DisposableEffect(Unit) {
-        viewModel.loadSettings(context)
-
-        onDispose {
-            viewModel.settings?.let { currentSettings ->
-                val newSettings = Settings(
-                    currentSettings.id,
-                    currentSettings.userId,
-                    CredentialsSessionManager.getLanguage1(),
-                    CredentialsSessionManager.getDarkMode1(),
-                    CredentialsSessionManager.getNotificationEnabled1(),
-                    currentSettings.createdAt,
-                    currentSettings.updatedAt
-                )
-                viewModel.updateSettings(newSettings)
-            }
-        }
+fun SettingsScreen(
+    context: Context,
+    navController: NavHostController,
+    settingsViewModel: SettingsViewModel = viewModel(),
+    authViewModel: AuthViewModel = viewModel()
+) {
+    LaunchedEffect(Unit) {
+        settingsViewModel.loadSettings(context)
     }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color(0xFFF8FAFC))
-            .verticalScroll(rememberScrollState())
-            .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
-    ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.fillMaxWidth()
+    val settings = settingsViewModel.settings
+
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("Configuración", fontWeight = FontWeight.Bold) },
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White)
+            )
+        },
+        containerColor = Color(0xFFF8FAFC)
+    ) { padding ->
+        Column(
+            modifier = Modifier.fillMaxSize().padding(padding).padding(16.dp)
         ) {
-            Text(
-                text = "Settings",
-                fontSize = 24.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color(0xFF1E293B)
-            )
-        }
+            Text("Preferencias de la App", color = Color(0xFF64748B), fontWeight = FontWeight.Bold, fontSize = 14.sp)
+            Spacer(modifier = Modifier.height(16.dp))
 
-        Spacer(modifier = Modifier.height(4.dp))
+            if (settingsViewModel.isLoading) {
+                CircularProgressIndicator(color = Color(0xFF6366F1), modifier = Modifier.align(Alignment.CenterHorizontally))
+            } else if (settings != null) {
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(containerColor = Color.White)
+                ) {
+                    Column(modifier = Modifier.padding(8.dp)) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth().padding(8.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Icon(Icons.Default.DarkMode, contentDescription = null, tint = Color(0xFF64748B))
+                                Spacer(modifier = Modifier.width(12.dp))
+                                Text("Modo Oscuro", fontSize = 16.sp, color = Color(0xFF1E293B))
+                            }
+                            Switch(
+                                checked = settings.darkMode ?: false,
+                                onCheckedChange = { newVal ->
+                                    settingsViewModel.updateSettings(settings.copy(darkMode = newVal))
+                                },
+                                colors = SwitchDefaults.colors(checkedThumbColor = Color(0xFF6366F1), checkedTrackColor = Color(0xFFC7D2FE))
+                            )
+                        }
 
-        Text(
-            text = "Preferences",
-            fontSize = 18.sp,
-            fontWeight = FontWeight.SemiBold,
-            color = Color(0xFF64748B)
-        )
+                        HorizontalDivider(color = Color(0xFFF1F5F9))
 
-        SettingsCard {
-            SettingsToggleRow(
-                icon = Icons.Default.DarkMode,
-                title = "Dark Mode",
-                checked = CredentialsSessionManager.getDarkMode1(),
-                onCheckedChange = {
-                    CredentialsSessionManager.setDarkMode1(it)
+                        Row(
+                            modifier = Modifier.fillMaxWidth().padding(8.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Icon(Icons.Default.Notifications, contentDescription = null, tint = Color(0xFF64748B))
+                                Spacer(modifier = Modifier.width(12.dp))
+                                Text("Notificaciones", fontSize = 16.sp, color = Color(0xFF1E293B))
+                            }
+                            Switch(
+                                checked = settings.notificationEnabled ?: true,
+                                onCheckedChange = { newVal ->
+                                    settingsViewModel.updateSettings(settings.copy(notificationEnabled = newVal))
+                                },
+                                colors = SwitchDefaults.colors(checkedThumbColor = Color(0xFF6366F1), checkedTrackColor = Color(0xFFC7D2FE))
+                            )
+                        }
+                    }
                 }
-            )
-            HorizontalDivider(
-                modifier = Modifier.padding(horizontal = 16.dp),
-                color = Color(0xFFF1F5F9)
-            )
-            SettingsToggleRow(
-                icon = Icons.Default.Notifications,
-                title = "Enable Notifications",
-                checked = CredentialsSessionManager.getNotificationEnabled1(),
-                onCheckedChange = {
-                    CredentialsSessionManager.setNotificationsState(it)
-                }
-            )
-        }
+            } else {
+                Text("Error al cargar configuraciones.", color = Color.Red)
+            }
 
-        Text(
-            text = "Regional",
-            fontSize = 18.sp,
-            fontWeight = FontWeight.SemiBold,
-            color = Color(0xFF64748B)
-        )
+            Spacer(modifier = Modifier.weight(1f))
 
-        SettingsCard {
-            SettingsActionRow(
-                icon = Icons.Default.Language,
-                title = "Language",
-                value = CredentialsSessionManager.getLanguage1(),
+            Button(
                 onClick = {
-                    val nextLang =
-                        if (CredentialsSessionManager.getLanguage1() == "English") "Spanish" else "English"
-                    CredentialsSessionManager.setLanguage1(nextLang)
-                }
-            )
-        }
-    }
-}
-
-@Composable
-fun SettingsCard(content: @Composable ColumnScope.() -> Unit) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-        shape = MaterialTheme.shapes.medium,
-        content = content
-    )
-}
-
-@Composable
-fun SettingsToggleRow(
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
-    title: String,
-    checked: Boolean,
-    onCheckedChange: (Boolean) -> Unit
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(16.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween
-    ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Icon(icon, contentDescription = null, tint = Color(0xFF6366F1))
-            Spacer(modifier = Modifier.width(16.dp))
-            Text(text = title, fontSize = 16.sp, color = Color(0xFF1E293B))
-        }
-        Switch(
-            checked = checked,
-            onCheckedChange = onCheckedChange,
-            colors = SwitchDefaults.colors(
-                checkedThumbColor = Color.White,
-                checkedTrackColor = Color(0xFF6366F1)
-            )
-        )
-    }
-}
-
-@Composable
-fun SettingsActionRow(
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
-    title: String,
-    value: String,
-    onClick: () -> Unit
-) {
-    Surface(
-        onClick = onClick,
-        color = Color.Transparent
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(icon, contentDescription = null, tint = Color(0xFF6366F1))
-                Spacer(modifier = Modifier.width(16.dp))
-                Text(text = title, fontSize = 16.sp, color = Color(0xFF1E293B))
+                    authViewModel.logout(context) {
+                        navController.navigate("logIn") {
+                            popUpTo(0) { inclusive = true }
+                        }
+                    }
+                },
+                modifier = Modifier.fillMaxWidth().height(56.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFEF4444)),
+                shape = RoundedCornerShape(12.dp)
+            ) {
+                Icon(Icons.Default.Logout, contentDescription = null, tint = Color.White)
+                Spacer(modifier = Modifier.width(8.dp))
+                Text("Cerrar Sesión", fontSize = 16.sp, fontWeight = FontWeight.Bold)
             }
-            Text(text = value, fontSize = 14.sp, color = Color(0xFF64748B))
+            Spacer(modifier = Modifier.height(32.dp))
         }
     }
 }

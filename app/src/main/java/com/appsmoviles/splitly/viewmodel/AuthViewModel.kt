@@ -16,11 +16,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.json.JSONObject
-import java.io.BufferedReader
-import java.io.InputStreamReader
-import java.io.OutputStreamWriter
-import java.net.HttpURLConnection
-import java.net.URL
 
 class AuthViewModel : ViewModel() {
 
@@ -39,7 +34,6 @@ class AuthViewModel : ViewModel() {
 
                 if (response.isSuccessful && response.body() != null) {
                     val authData = response.body()!!
-                    user = authData
 
                     val prefs = context.getSharedPreferences("splitly_prefs", Context.MODE_PRIVATE)
                     val editor = prefs.edit()
@@ -49,6 +43,7 @@ class AuthViewModel : ViewModel() {
                     val finalHouseholdId = authData.houseHoldId ?: ""
                     val finalPlan = (authData.plan ?: "FREE").uppercase()
                     val finalRole = authData.role ?: "Representative"
+                    val finalName = authData.name ?: "Usuario"
 
                     editor.putString("householdId", finalHouseholdId)
                     editor.putBoolean("is_logged_in", true)
@@ -56,8 +51,8 @@ class AuthViewModel : ViewModel() {
 
                     val userJson = JSONObject().apply {
                         put("id", authData.id)
-                        put("name", authData.name ?: "Usuario")
-                        put("email", email ?: email)
+                        put("name", finalName)
+                        put("email", email)
                         put("role", finalRole)
                         put("plan", finalPlan)
                         put("householdId", finalHouseholdId)
@@ -107,5 +102,30 @@ class AuthViewModel : ViewModel() {
 
     fun clearError() {
         errorMessage = null
+    }
+
+
+    fun logout(context: Context, onSuccess: () -> Unit) {
+        viewModelScope.launch {
+            isLoading = true
+            try {
+                val prefs = context.getSharedPreferences("splitly_prefs", Context.MODE_PRIVATE)
+                val editor = prefs.edit()
+
+                editor.clear()
+                editor.apply()
+
+                user = null
+
+
+                withContext(Dispatchers.Main) {
+                    onSuccess()
+                }
+            } catch (e: Exception) {
+                Log.e("AuthViewModel", "Error al cerrar sesión", e)
+            } finally {
+                isLoading = false
+            }
+        }
     }
 }
