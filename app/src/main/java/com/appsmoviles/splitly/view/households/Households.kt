@@ -39,6 +39,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -47,9 +48,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.appsmoviles.splitly.model.beans.householdmanagement.Household
@@ -66,16 +70,26 @@ fun Households(
     var userId by remember { mutableStateOf(-1) }
     var showDialog by remember { mutableStateOf(false) }
 
-    LaunchedEffect(Unit) {
-        val prefs = context.getSharedPreferences("splitly_prefs", Context.MODE_PRIVATE)
-        val userStr = prefs.getString("user", null)
-        if (userStr != null) {
-            try {
-                userId = JSONObject(userStr).optInt("id", -1)
-                if (userId != -1) {
-                    viewModel.getHouseholdsByRepresentativeId(userId)
+    val lifecycleOwner = LocalLifecycleOwner.current
+
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                val prefs = context.getSharedPreferences("splitly_prefs", Context.MODE_PRIVATE)
+                val userStr = prefs.getString("user", null)
+                if (userStr != null) {
+                    try {
+                        userId = JSONObject(userStr).optInt("id", -1)
+                        if (userId != -1) {
+                            viewModel.getHouseholdsByRepresentativeId(userId)
+                        }
+                    } catch (e: Exception) { e.printStackTrace() }
                 }
-            } catch (e: Exception) { e.printStackTrace() }
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
         }
     }
 

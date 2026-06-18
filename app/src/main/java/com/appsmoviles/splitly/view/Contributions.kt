@@ -27,6 +27,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -35,9 +36,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.appsmoviles.splitly.viewmodel.BillViewModel
@@ -52,12 +56,21 @@ fun Contributions(
     billViewModel: BillViewModel = viewModel()
 ) {
     var activeHouseholdId by remember { mutableStateOf("") }
+    val lifecycleOwner = LocalLifecycleOwner.current
 
-    LaunchedEffect(Unit) {
-        val prefs = context.getSharedPreferences("splitly_prefs", Context.MODE_PRIVATE)
-        activeHouseholdId = prefs.getString("householdId", "") ?: ""
-        if (activeHouseholdId.isNotEmpty()) {
-            billViewModel.getBillByHouseHoldId(activeHouseholdId)
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                val prefs = context.getSharedPreferences("splitly_prefs", Context.MODE_PRIVATE)
+                activeHouseholdId = prefs.getString("householdId", "") ?: ""
+                if (activeHouseholdId.isNotEmpty()) {
+                    billViewModel.getBillByHouseHoldId(activeHouseholdId)
+                }
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
         }
     }
 
