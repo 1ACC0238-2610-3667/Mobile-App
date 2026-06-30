@@ -16,10 +16,16 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
+data class DebtDetail(
+    val description: String,
+    val amount: Double
+)
+
 data class MemberWithDebt(
     val user: User,
     val memberId: String,
-    val pendingDebt: Double
+    val pendingDebt: Double,
+    val debtDetails: List<DebtDetail>
 )
 
 class HouseholdMemberViewModel: ViewModel() {
@@ -59,19 +65,32 @@ class HouseholdMemberViewModel: ViewModel() {
                                 async(Dispatchers.IO) {
                                     val user = users.find { it.id == hm.userId } ?: return@async null
                                     var pendingDebt = 0.0
+                                    val details = mutableListOf<DebtDetail>()
                                     if (memberId != null) {
                                         val mcRes = RetrofitClient.memberContributionWebService.getMemberContributionsByMemberId(memberId)
                                         if (mcRes.isSuccessful && mcRes.body() != null) {
                                             val mcs = mcRes.body()!!
-                                            for (mc in mcs) {
+                                            val pendingMcs = mcs.filter { mc ->
                                                 val status = mc.status?.lowercase() ?: "pending"
-                                                if (status != "done" && status != "paid" && status != "approved") {
-                                                    pendingDebt += mc.amount
-                                                }
+                                                status != "done" && status != "paid" && status != "approved"
                                             }
+                                            val fetchedDetails = pendingMcs.map { mc ->
+                                                async(Dispatchers.IO) {
+                                                    val amount = mc.amount ?: 0.0
+                                                    val contribRes = RetrofitClient.contributionWebService.getContributionById(mc.contributionId)
+                                                    val desc = if (contribRes.isSuccessful && contribRes.body() != null) {
+                                                        contribRes.body()!!.description ?: "Gasto"
+                                                    } else {
+                                                        "Gasto"
+                                                    }
+                                                    DebtDetail(desc, amount)
+                                                }
+                                            }.awaitAll()
+                                            details.addAll(fetchedDetails)
+                                            pendingDebt = fetchedDetails.sumOf { it.amount }
                                         }
                                     }
-                                    MemberWithDebt(user, memberId ?: "", pendingDebt)
+                                    MemberWithDebt(user, memberId ?: "", pendingDebt, details)
                                 }
                             }.awaitAll().filterNotNull()
                         }
