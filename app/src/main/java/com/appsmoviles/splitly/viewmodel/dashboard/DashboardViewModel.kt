@@ -34,8 +34,13 @@ class DashboardViewModel : ViewModel() {
 
     var isLoading by mutableStateOf(true)
     var errorMessage by mutableStateOf<String?>(null)
+    var lastUpdated by mutableStateOf(0L)
 
-    fun loadSummary(context: Context) {
+    fun loadSummary(context: Context, forceRefresh: Boolean = false) {
+        val now = System.currentTimeMillis()
+        if (!forceRefresh && (now - lastUpdated) < 120_000L && approvalsNeeded.isNotEmpty()) {
+            return
+        }
         viewModelScope.launch(Dispatchers.IO) {
             withContext(Dispatchers.Main) {
                 isLoading = true
@@ -117,6 +122,7 @@ class DashboardViewModel : ViewModel() {
                             totalCollected = collected
                             totalPending = pending
                             approvalsNeeded = pendingApprovals
+                            lastUpdated = System.currentTimeMillis()
                         }
                     } else {
                         withContext(Dispatchers.Main) { errorMessage = "Error al cargar los hogares." }
@@ -136,7 +142,7 @@ class DashboardViewModel : ViewModel() {
             try {
                 val response = RetrofitClient.memberContributionWebService.approvePayment(contributionId)
                 if (response.isSuccessful) {
-                    loadSummary(context)
+                    loadSummary(context, forceRefresh = true)
                 } else {
                     withContext(Dispatchers.Main) { errorMessage = "Error: ${response.code()}" }
                 }

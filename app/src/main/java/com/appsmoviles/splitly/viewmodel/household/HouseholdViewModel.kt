@@ -33,7 +33,13 @@ class HouseholdViewModel : ViewModel() {
         }
     }
 
-    fun getHouseholdsByRepresentativeId(id: Int) {
+    var lastUpdated by mutableStateOf(0L)
+
+    fun getHouseholdsByRepresentativeId(id: Int, forceRefresh: Boolean = false) {
+        val now = System.currentTimeMillis()
+        if (!forceRefresh && (now - lastUpdated) < 120_000L && households.isNotEmpty()) {
+            return
+        }
         viewModelScope.launch {
             isLoading = true
             errorMessage = null
@@ -41,7 +47,10 @@ class HouseholdViewModel : ViewModel() {
                 val response = withContext(Dispatchers.IO) {
                     RetrofitClient.householdWebService.getHouseHoldByRepresentativeId(id)
                 }
-                if (response.isSuccessful && response.body() != null) households = response.body()!!.filterNotNull()
+                if (response.isSuccessful && response.body() != null) {
+                    households = response.body()!!.filterNotNull()
+                    lastUpdated = System.currentTimeMillis()
+                }
             } catch (e: Exception) { errorMessage = "Error: ${e.message}" } finally { isLoading = false }
         }
     }

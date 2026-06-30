@@ -62,6 +62,8 @@ fun Expenses(
     context: Context,
     navController: NavHostController,
     contributionViewModel: ContributionViewModel = viewModel(),
+    dashboardViewModel: com.appsmoviles.splitly.viewmodel.dashboard.DashboardViewModel = viewModel(),
+    billViewModel: com.appsmoviles.splitly.viewmodel.BillViewModel = viewModel(),
     onOpenDrawer: () -> Unit = {}
 ) {
     val translations = com.appsmoviles.splitly.utils.LocalTranslations.current
@@ -101,7 +103,16 @@ fun Expenses(
             deadlineCalendar.get(Calendar.YEAR),
             deadlineCalendar.get(Calendar.MONTH),
             deadlineCalendar.get(Calendar.DAY_OF_MONTH)
-        )
+        ).apply {
+            val minCal = Calendar.getInstance().apply {
+                set(Calendar.DAY_OF_MONTH, 1)
+                set(Calendar.HOUR_OF_DAY, 0)
+                set(Calendar.MINUTE, 0)
+                set(Calendar.SECOND, 0)
+                set(Calendar.MILLISECOND, 0)
+            }
+            datePicker.minDate = minCal.timeInMillis
+        }
     }
 
     Scaffold(
@@ -218,6 +229,8 @@ fun Expenses(
                             Toast.makeText(context, translations["expense_created_success"] ?: "¡Gasto dividido y notificado con éxito!", Toast.LENGTH_LONG).show()
                             description = ""
                             amount = ""
+                            dashboardViewModel.lastUpdated = 0L
+                            billViewModel.lastUpdated = 0L
                             navController.navigate("Dashboard") { popUpTo("Expenses") { inclusive = true } }
                         }
                     },

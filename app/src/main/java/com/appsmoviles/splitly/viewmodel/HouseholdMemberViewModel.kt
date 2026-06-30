@@ -21,7 +21,13 @@ class HouseholdMemberViewModel: ViewModel() {
     var householdMembers: MutableMap<String, ArrayList<User?>> = mutableMapOf()
     var invitationResponse: Invitation? by mutableStateOf(null)
 
-    fun getHouseholdMembersByHouseholdId(households: List<Household?>) {
+    var lastUpdated by mutableStateOf(0L)
+
+    fun getHouseholdMembersByHouseholdId(households: List<Household?>, forceRefresh: Boolean = false) {
+        val now = System.currentTimeMillis()
+        if (!forceRefresh && (now - lastUpdated) < 120_000L && householdMembers.isNotEmpty()) {
+            return
+        }
         viewModelScope.launch(Dispatchers.IO) { // Debe correr en IO
             withContext(Dispatchers.Main) {
                 isLoading = true
@@ -47,7 +53,10 @@ class HouseholdMemberViewModel: ViewModel() {
                     }
                 }
 
-                withContext(Dispatchers.Main) { isLoading = false }
+                withContext(Dispatchers.Main) {
+                    isLoading = false
+                    lastUpdated = System.currentTimeMillis()
+                }
             } catch (e: Exception) {
                 withContext(Dispatchers.Main) {
                     errorMessage = "Error: ${e.message}"

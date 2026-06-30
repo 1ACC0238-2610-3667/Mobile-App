@@ -72,7 +72,7 @@ fun MainScreen(
             NavHost(
                 navController = navController,
                 startDestination = "Dashboard",
-                modifier = Modifier.padding(padding)
+                modifier = Modifier
             ) {
                 composable("Dashboard") {
                     Dashboard(
@@ -87,6 +87,8 @@ fun MainScreen(
                         context = context,
                         navController = navController,
                         contributionViewModel = contributionViewModel,
+                        dashboardViewModel = dashboardViewModel,
+                        billViewModel = billViewModel,
                         onOpenDrawer = { scope.launch { drawerState.open() } }
                     )
                 }
@@ -95,6 +97,8 @@ fun MainScreen(
                         context = context,
                         navController = navController,
                         viewModel = householdViewModel,
+                        dashboardViewModel = dashboardViewModel,
+                        householdMemberViewModel = householdMemberViewModel,
                         onOpenDrawer = { scope.launch { drawerState.open() } }
                     )
                 }

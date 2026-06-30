@@ -17,6 +17,7 @@ import androidx.compose.material.icons.filled.TaskAlt
 import androidx.compose.material.icons.rounded.CheckCircle
 import androidx.compose.material.icons.rounded.Warning
 import androidx.compose.material3.*
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.remember
@@ -83,183 +84,192 @@ fun Dashboard(
         },
         containerColor = MaterialTheme.colorScheme.background
     ) { padding ->
-        Column(
+        PullToRefreshBox(
+            isRefreshing = viewModel.isLoading && viewModel.lastUpdated > 0L,
+            onRefresh = {
+                viewModel.loadSummary(context, forceRefresh = true)
+            },
             modifier = Modifier
-                .fillMaxSize()
                 .padding(padding)
-                .background(MaterialTheme.colorScheme.background)
-                .padding(horizontal = 16.dp)
+                .fillMaxSize()
         ) {
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // Premium Header Banner Card
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(16.dp),
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
-                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(MaterialTheme.colorScheme.background)
+                    .padding(horizontal = 16.dp)
             ) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp)
-                ) {
-                    Text(
-                        text = "${translations["welcome_back"] ?: "Bienvenido de nuevo"},",
-                        fontSize = 14.sp,
-                        color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f)
-                    )
-                    Text(
-                        text = displayName,
-                        fontSize = 22.sp,
-                        fontWeight = FontWeight.ExtraBold,
-                        color = MaterialTheme.colorScheme.onPrimaryContainer,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                    Spacer(modifier = Modifier.height(12.dp))
+                Spacer(modifier = Modifier.height(16.dp))
 
-                    // Active Household badge chip
-                    val activeHName = viewModel.activeHouseholdName
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
+                // Premium Header Banner Card
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(16.dp),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+                ) {
+                    Column(
                         modifier = Modifier
-                            .background(
-                                if (activeHName != null) MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)
-                                else MaterialTheme.colorScheme.error.copy(alpha = 0.1f),
-                                RoundedCornerShape(8.dp)
-                            )
-                            .padding(horizontal = 10.dp, vertical = 6.dp)
+                            .fillMaxWidth()
+                            .padding(16.dp)
                     ) {
-                        Icon(
-                            imageVector = Icons.Default.Home,
-                            contentDescription = null,
-                            tint = if (activeHName != null) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error,
-                            modifier = Modifier.size(16.dp)
-                        )
-                        Spacer(modifier = Modifier.width(6.dp))
                         Text(
-                            text = activeHName ?: (translations["no_active_household"] ?: "Selecciona un hogar para administrar"),
-                            fontSize = 12.sp,
-                            fontWeight = FontWeight.SemiBold,
-                            color = if (activeHName != null) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error,
+                            text = "${translations["welcome_back"] ?: "Bienvenido de nuevo"},",
+                            fontSize = 14.sp,
+                            color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f)
+                        )
+                        Text(
+                            text = displayName,
+                            fontSize = 22.sp,
+                            fontWeight = FontWeight.ExtraBold,
+                            color = MaterialTheme.colorScheme.onPrimaryContainer,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
                         )
+                        Spacer(modifier = Modifier.height(12.dp))
+
+                        // Active Household badge chip
+                        val activeHName = viewModel.activeHouseholdName
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier
+                                .background(
+                                    if (activeHName != null) MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)
+                                    else MaterialTheme.colorScheme.error.copy(alpha = 0.1f),
+                                    RoundedCornerShape(8.dp)
+                                )
+                                .padding(horizontal = 10.dp, vertical = 6.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Home,
+                                contentDescription = null,
+                                tint = if (activeHName != null) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error,
+                                modifier = Modifier.size(16.dp)
+                            )
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Text(
+                                text = activeHName ?: (translations["no_active_household"] ?: "Selecciona un hogar para administrar"),
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                color = if (activeHName != null) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                        }
                     }
                 }
-            }
 
-            Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(16.dp))
 
-            if (viewModel.isLoading) {
-                Box(modifier = Modifier.fillMaxWidth().height(200.dp), contentAlignment = Alignment.Center) {
-                    CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
-                }
-            } else if (viewModel.errorMessage != null) {
-                Text(text = viewModel.errorMessage!!, color = MaterialTheme.colorScheme.error)
-            } else {
-                LazyColumn(
-                    modifier = Modifier.fillMaxSize(),
-                    verticalArrangement = Arrangement.spacedBy(16.dp)
-                ) {
-                    item {
-                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                            SmallMetricCard(
-                                modifier = Modifier.weight(1f),
-                                title = translations["manage_households_title"] ?: "Hogares",
-                                value = "${viewModel.totalHouseholdsCount}",
-                                icon = Icons.Default.Home,
-                                color = MaterialTheme.colorScheme.primary
-                            )
-                            SmallMetricCard(
-                                modifier = Modifier.weight(1f),
-                                title = translations["manage_members_title"] ?: "Miembros",
-                                value = "${viewModel.totalMembersCount}",
-                                icon = Icons.Default.Group,
-                                color = Color(0xFF0EA5E9)
-                            )
-                        }
-                        Spacer(modifier = Modifier.height(16.dp))
+                if (viewModel.isLoading && viewModel.lastUpdated == 0L) {
+                    Box(modifier = Modifier.fillMaxWidth().height(200.dp), contentAlignment = Alignment.Center) {
+                        CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
+                    }
+                } else if (viewModel.errorMessage != null) {
+                    Text(text = viewModel.errorMessage!!, color = MaterialTheme.colorScheme.error)
+                } else {
+                    LazyColumn(
+                        modifier = Modifier.fillMaxSize(),
+                        verticalArrangement = Arrangement.spacedBy(16.dp)
+                    ) {
+                        item {
+                            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                                SmallMetricCard(
+                                    modifier = Modifier.weight(1f),
+                                    title = translations["manage_households_title"] ?: "Hogares",
+                                    value = "${viewModel.totalHouseholdsCount}",
+                                    icon = Icons.Default.Home,
+                                    color = MaterialTheme.colorScheme.primary
+                                )
+                                SmallMetricCard(
+                                    modifier = Modifier.weight(1f),
+                                    title = translations["manage_members_title"] ?: "Miembros",
+                                    value = "${viewModel.totalMembersCount}",
+                                    icon = Icons.Default.Group,
+                                    color = Color(0xFF0EA5E9)
+                                )
+                            }
+                            Spacer(modifier = Modifier.height(16.dp))
 
-                        Text(
-                            text = translations["financial_health"] ?: "Salud Financiera",
-                            fontSize = 18.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onBackground
-                        )
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                            MoneyCard(
-                                modifier = Modifier.weight(1f),
-                                title = translations["collected"] ?: "Recaudado",
-                                amount = viewModel.totalCollected,
-                                icon = Icons.Rounded.CheckCircle,
-                                color = Color(0xFF10B981)
-                            )
-                            MoneyCard(
-                                modifier = Modifier.weight(1f),
-                                title = translations["pending"] ?: "Por Cobrar",
-                                amount = viewModel.totalPending,
-                                icon = Icons.Rounded.Warning,
-                                color = Color(0xFFEF4444)
-                            )
-                        }
-                        Spacer(modifier = Modifier.height(24.dp))
-
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(Icons.Default.NotificationsActive, contentDescription = null, tint = Color(0xFFF59E0B))
-                            Spacer(modifier = Modifier.width(8.dp))
                             Text(
-                                text = translations["require_approval"] ?: "Requieren tu Aprobación",
+                                text = translations["financial_health"] ?: "Salud Financiera",
                                 fontSize = 18.sp,
                                 fontWeight = FontWeight.Bold,
                                 color = MaterialTheme.colorScheme.onBackground
                             )
-                        }
-                        Text(
-                            text = translations["notified_payments"] ?: "Pagos notificados por los miembros.",
-                            fontSize = 14.sp,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                        Spacer(modifier = Modifier.height(8.dp))
-                    }
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                                MoneyCard(
+                                    modifier = Modifier.weight(1f),
+                                    title = translations["collected"] ?: "Recaudado",
+                                    amount = viewModel.totalCollected,
+                                    icon = Icons.Rounded.CheckCircle,
+                                    color = Color(0xFF10B981)
+                                )
+                                MoneyCard(
+                                    modifier = Modifier.weight(1f),
+                                    title = translations["pending"] ?: "Por Cobrar",
+                                    amount = viewModel.totalPending,
+                                    icon = Icons.Rounded.Warning,
+                                    color = Color(0xFFEF4444)
+                                )
+                            }
+                            Spacer(modifier = Modifier.height(24.dp))
 
-                    if (viewModel.approvalsNeeded.isEmpty()) {
-                        item {
-                            Card(
-                                modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
-                                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                                border = BorderStroke(1.dp, MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.2f))
-                            ) {
-                                Column(
-                                    modifier = Modifier.padding(32.dp).fillMaxWidth(),
-                                    horizontalAlignment = Alignment.CenterHorizontally
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Icon(Icons.Default.NotificationsActive, contentDescription = null, tint = Color(0xFFF59E0B))
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text(
+                                    text = translations["require_approval"] ?: "Requieren tu Aprobación",
+                                    fontSize = 18.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.onBackground
+                                )
+                            }
+                            Text(
+                                text = translations["notified_payments"] ?: "Pagos notificados por los miembros.",
+                                fontSize = 14.sp,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            Spacer(modifier = Modifier.height(8.dp))
+                        }
+
+                        if (viewModel.approvalsNeeded.isEmpty()) {
+                            item {
+                                Card(
+                                    modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+                                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.2f))
                                 ) {
-                                    Icon(
-                                        imageVector = Icons.Default.TaskAlt,
-                                        contentDescription = null,
-                                        tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
-                                        modifier = Modifier.size(48.dp)
-                                    )
-                                    Spacer(modifier = Modifier.height(8.dp))
-                                    Text(
-                                        text = translations["no_pending_payments"] ?: "No hay pagos pendientes de revisión.",
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                        fontSize = 14.sp
-                                    )
+                                    Column(
+                                        modifier = Modifier.padding(32.dp).fillMaxWidth(),
+                                        horizontalAlignment = Alignment.CenterHorizontally
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Default.TaskAlt,
+                                            contentDescription = null,
+                                            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
+                                            modifier = Modifier.size(48.dp)
+                                        )
+                                        Spacer(modifier = Modifier.height(8.dp))
+                                        Text(
+                                            text = translations["no_pending_payments"] ?: "No hay pagos pendientes de revisión.",
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                            fontSize = 14.sp
+                                        )
+                                    }
                                 }
                             }
+                        } else {
+                            items(viewModel.approvalsNeeded) { item ->
+                                ApprovalCard(
+                                    item = item,
+                                    onApprove = { viewModel.approvePayment(context, item.contributionId) }
+                                )
+                            }
                         }
-                    } else {
-                        items(viewModel.approvalsNeeded) { item ->
-                            ApprovalCard(
-                                item = item,
-                                onApprove = { viewModel.approvePayment(context, item.contributionId) }
-                            )
-                        }
+                        item { Spacer(modifier = Modifier.height(40.dp)) }
                     }
-                    item { Spacer(modifier = Modifier.height(40.dp)) }
                 }
             }
         }

@@ -17,8 +17,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -30,6 +28,9 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Menu
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
@@ -99,33 +100,45 @@ fun Members(
             Box(modifier = Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
                 Text(translations["select_household_first"] ?: "Ve a 'Mis Hogares' y selecciona uno para administrar.", color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
-        } else if (viewModel.isLoading) {
-            Box(modifier = Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
-            }
         } else {
-            val members = viewModel.householdMembers[activeHouseholdId] ?: emptyList()
-
-            LazyColumn(
-                modifier = Modifier.fillMaxSize().padding(padding).padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
+            PullToRefreshBox(
+                isRefreshing = viewModel.isLoading && viewModel.lastUpdated > 0L,
+                onRefresh = {
+                    viewModel.getHouseholdMembersByHouseholdId(listOf(Household(id = activeHouseholdId)), forceRefresh = true)
+                },
+                modifier = Modifier
+                    .padding(padding)
+                    .fillMaxSize()
             ) {
-                item {
-                    Text(
-                        text = translations["active_members_hint"] ?: "Integrantes activos en esta casa:",
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        fontSize = 14.sp
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                }
+                val members = viewModel.householdMembers[activeHouseholdId] ?: emptyList()
 
-                if (members.isEmpty()) {
-                    item {
-                        Text(translations["no_members_yet"] ?: "No hay miembros unidos todavía.", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                if (viewModel.isLoading && viewModel.lastUpdated == 0L) {
+                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
                     }
                 } else {
-                    items(members.filterNotNull()) { user ->
-                        MemberItemCard(user)
+                    LazyColumn(
+                        modifier = Modifier.fillMaxSize().padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        item {
+                            Text(
+                                text = translations["active_members_hint"] ?: "Integrantes activos en esta casa:",
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                fontSize = 14.sp
+                            )
+                            Spacer(modifier = Modifier.height(8.dp))
+                        }
+
+                        if (members.isEmpty()) {
+                            item {
+                                Text(translations["no_members_yet"] ?: "No hay miembros unidos todavía.", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            }
+                        } else {
+                            items(members.filterNotNull()) { user ->
+                                MemberItemCard(user)
+                            }
+                        }
                     }
                 }
             }

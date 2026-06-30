@@ -16,6 +16,7 @@ import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.*
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -40,6 +41,8 @@ fun Households(
     context: Context,
     navController: NavHostController,
     viewModel: HouseholdViewModel = viewModel(),
+    dashboardViewModel: com.appsmoviles.splitly.viewmodel.dashboard.DashboardViewModel = viewModel(),
+    householdMemberViewModel: com.appsmoviles.splitly.viewmodel.HouseholdMemberViewModel = viewModel(),
     onOpenDrawer: () -> Unit = {}
 ) {
     val translations = com.appsmoviles.splitly.utils.LocalTranslations.current
@@ -94,15 +97,20 @@ fun Households(
         },
         containerColor = MaterialTheme.colorScheme.background
     ) { padding ->
-        if (viewModel.isLoading) {
-            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
-            }
-        } else {
+        PullToRefreshBox(
+            isRefreshing = viewModel.isLoading && viewModel.lastUpdated > 0L,
+            onRefresh = {
+                if (userId != -1) {
+                    viewModel.getHouseholdsByRepresentativeId(userId, forceRefresh = true)
+                }
+            },
+            modifier = Modifier
+                .padding(padding)
+                .fillMaxSize()
+        ) {
             LazyColumn(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(padding)
                     .padding(16.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
@@ -115,7 +123,7 @@ fun Households(
                     Spacer(modifier = Modifier.height(8.dp))
                 }
 
-                if (viewModel.households.isEmpty()) {
+                if (viewModel.households.isEmpty() && !viewModel.isLoading) {
                     item {
                         Text(
                             text = translations["no_households_hint"] ?: "No administras ningún hogar todavía. Toca el botón + para crear uno.",
@@ -124,7 +132,7 @@ fun Households(
                     }
                 } else {
                     items(viewModel.households.filterNotNull()) { household ->
-                        HouseholdCard(context, household, navController)
+                        HouseholdCard(context, household, navController, dashboardViewModel, householdMemberViewModel)
                     }
                 }
 
@@ -144,7 +152,8 @@ fun Households(
                         userId = userId
                     ) {
                         showDialog = false
-                        viewModel.getHouseholdsByRepresentativeId(userId) // Recargamos la lista
+                        viewModel.lastUpdated = 0L
+                        viewModel.getHouseholdsByRepresentativeId(userId, forceRefresh = true)
                         Toast.makeText(context, translations["household_created_success"] ?: "Hogar creado exitosamente", Toast.LENGTH_SHORT).show()
                     }
                 }
@@ -154,7 +163,13 @@ fun Households(
 }
 
 @Composable
-fun HouseholdCard(context: Context, household: Household, navController: NavHostController) {
+fun HouseholdCard(
+    context: Context,
+    household: Household,
+    navController: NavHostController,
+    dashboardViewModel: com.appsmoviles.splitly.viewmodel.dashboard.DashboardViewModel,
+    householdMemberViewModel: com.appsmoviles.splitly.viewmodel.HouseholdMemberViewModel
+) {
     val translations = com.appsmoviles.splitly.utils.LocalTranslations.current
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -200,7 +215,13 @@ fun HouseholdCard(context: Context, household: Household, navController: NavHost
                 Button(
                     onClick = {
                         val prefs = context.getSharedPreferences("splitly_prefs", Context.MODE_PRIVATE)
+                        val prevActiveId = prefs.getString("householdId", "")
                         prefs.edit().putString("householdId", household.id).apply()
+                        if (prevActiveId != household.id) {
+                            // Invalidate caching for active household details
+                            dashboardViewModel.lastUpdated = 0L
+                            householdMemberViewModel.lastUpdated = 0L
+                        }
                         Toast.makeText(context, "${translations["administering"] ?: "Administrando:"} ${household.name}", Toast.LENGTH_SHORT).show()
                         navController.navigate("Dashboard")
                     },
