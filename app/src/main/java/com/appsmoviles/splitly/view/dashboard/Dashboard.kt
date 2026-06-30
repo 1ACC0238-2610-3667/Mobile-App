@@ -1,18 +1,9 @@
 package com.appsmoviles.splitly.view.dashboard
 
 import android.content.Context
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -20,25 +11,22 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Group
 import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.NotificationsActive
 import androidx.compose.material.icons.filled.TaskAlt
 import androidx.compose.material.icons.rounded.CheckCircle
 import androidx.compose.material.icons.rounded.Warning
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Icon
-import androidx.compose.material3.Text
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.Lifecycle
@@ -48,10 +36,16 @@ import com.appsmoviles.splitly.viewmodel.dashboard.ApprovalItem
 import com.appsmoviles.splitly.viewmodel.dashboard.DashboardViewModel
 import java.util.Locale
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun Dashboard(viewModel: DashboardViewModel, context: Context, navController: NavHostController) {
-
+fun Dashboard(
+    viewModel: DashboardViewModel,
+    context: Context,
+    navController: NavHostController,
+    onOpenDrawer: () -> Unit = {}
+) {
     val lifecycleOwner = LocalLifecycleOwner.current
+    val translations = com.appsmoviles.splitly.utils.LocalTranslations.current
 
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
@@ -65,78 +59,208 @@ fun Dashboard(viewModel: DashboardViewModel, context: Context, navController: Na
         }
     }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color(0xFFF8FAFC))
-            .padding(horizontal = 16.dp)
-    ) {
-        Spacer(modifier = Modifier.height(16.dp))
-        Text(text = "Hola de nuevo,", fontSize = 16.sp, color = Color(0xFF64748B))
-        Text(text = viewModel.email, fontSize = 24.sp, fontWeight = FontWeight.Bold, color = Color(0xFF1E293B))
-        Spacer(modifier = Modifier.height(24.dp))
-
-        if (viewModel.isLoading) {
-            Box(modifier = Modifier.fillMaxWidth().height(200.dp), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator(color = Color(0xFF6366F1))
-            }
-        } else if (viewModel.errorMessage != null) {
-            Text(text = viewModel.errorMessage!!, color = Color.Red)
+    val displayName = remember(viewModel.userName, viewModel.email) {
+        if (viewModel.userName.isNotEmpty() && viewModel.userName != "User" && viewModel.userName != "Usuario") {
+            viewModel.userName
+        } else if (viewModel.email.isNotEmpty()) {
+            viewModel.email.substringBefore("@")
         } else {
-            LazyColumn(
-                modifier = Modifier.fillMaxSize(),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
+            "User"
+        }
+    }
+
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text(translations["dashboard"] ?: "Dashboard", fontWeight = FontWeight.Bold) },
+                navigationIcon = {
+                    IconButton(onClick = onOpenDrawer) {
+                        Icon(imageVector = Icons.Default.Menu, contentDescription = "Menu")
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.surface)
+            )
+        },
+        containerColor = MaterialTheme.colorScheme.background
+    ) { padding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding)
+                .background(MaterialTheme.colorScheme.background)
+                .padding(horizontal = 16.dp)
+        ) {
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Premium Header Banner Card
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(16.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
+                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
             ) {
-                item {
-                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                        SmallMetricCard(modifier = Modifier.weight(1f), title = "Hogares", value = "${viewModel.totalHouseholdsCount}", icon = Icons.Default.Home, color = Color(0xFF6366F1))
-                        SmallMetricCard(modifier = Modifier.weight(1f), title = "Miembros", value = "${viewModel.totalMembersCount}", icon = Icons.Default.Group, color = Color(0xFF0EA5E9))
-                    }
-                    Spacer(modifier = Modifier.height(16.dp))
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp)
+                ) {
+                    Text(
+                        text = "${translations["welcome_back"] ?: "Bienvenido de nuevo"},",
+                        fontSize = 14.sp,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f)
+                    )
+                    Text(
+                        text = displayName,
+                        fontSize = 22.sp,
+                        fontWeight = FontWeight.ExtraBold,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                    Spacer(modifier = Modifier.height(12.dp))
 
-                    Text("Salud Financiera", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Color(0xFF1E293B))
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                        MoneyCard(modifier = Modifier.weight(1f), title = "Recaudado", amount = viewModel.totalCollected, icon = Icons.Rounded.CheckCircle, color = Color(0xFF10B981))
-                        MoneyCard(modifier = Modifier.weight(1f), title = "Por Cobrar", amount = viewModel.totalPending, icon = Icons.Rounded.Warning, color = Color(0xFFEF4444))
-                    }
-                    Spacer(modifier = Modifier.height(24.dp))
-
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(Icons.Default.NotificationsActive, contentDescription = null, tint = Color(0xFFF59E0B))
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text("Requieren tu Aprobación", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Color(0xFF1E293B))
-                    }
-                    Text("Pagos notificados por los miembros.", fontSize = 14.sp, color = Color(0xFF64748B))
-                    Spacer(modifier = Modifier.height(8.dp))
-                }
-
-                if (viewModel.approvalsNeeded.isEmpty()) {
-                    item {
-                        Card(
-                            modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
-                            colors = CardDefaults.cardColors(containerColor = Color.White),
-                            border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFE2E8F0))
-                        ) {
-                            Column(
-                                modifier = Modifier.padding(32.dp).fillMaxWidth(),
-                                horizontalAlignment = Alignment.CenterHorizontally
-                            ) {
-                                Icon(Icons.Default.TaskAlt, contentDescription = null, tint = Color(0xFFCBD5E1), modifier = Modifier.size(48.dp))
-                                Spacer(modifier = Modifier.height(8.dp))
-                                Text("No hay pagos pendientes de revisión.", color = Color(0xFF94A3B8))
-                            }
-                        }
-                    }
-                } else {
-                    items(viewModel.approvalsNeeded) { item ->
-                        ApprovalCard(
-                            item = item,
-                            onApprove = { viewModel.approvePayment(context, item.contributionId) }
+                    // Active Household badge chip
+                    val activeHName = viewModel.activeHouseholdName
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier
+                            .background(
+                                if (activeHName != null) MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)
+                                else MaterialTheme.colorScheme.error.copy(alpha = 0.1f),
+                                RoundedCornerShape(8.dp)
+                            )
+                            .padding(horizontal = 10.dp, vertical = 6.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Home,
+                            contentDescription = null,
+                            tint = if (activeHName != null) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error,
+                            modifier = Modifier.size(16.dp)
+                        )
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Text(
+                            text = activeHName ?: (translations["no_active_household"] ?: "Selecciona un hogar para administrar"),
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            color = if (activeHName != null) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
                         )
                     }
                 }
-                item { Spacer(modifier = Modifier.height(40.dp)) }
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            if (viewModel.isLoading) {
+                Box(modifier = Modifier.fillMaxWidth().height(200.dp), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
+                }
+            } else if (viewModel.errorMessage != null) {
+                Text(text = viewModel.errorMessage!!, color = MaterialTheme.colorScheme.error)
+            } else {
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize(),
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    item {
+                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                            SmallMetricCard(
+                                modifier = Modifier.weight(1f),
+                                title = translations["manage_households_title"] ?: "Hogares",
+                                value = "${viewModel.totalHouseholdsCount}",
+                                icon = Icons.Default.Home,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                            SmallMetricCard(
+                                modifier = Modifier.weight(1f),
+                                title = translations["manage_members_title"] ?: "Miembros",
+                                value = "${viewModel.totalMembersCount}",
+                                icon = Icons.Default.Group,
+                                color = Color(0xFF0EA5E9)
+                            )
+                        }
+                        Spacer(modifier = Modifier.height(16.dp))
+
+                        Text(
+                            text = translations["financial_health"] ?: "Salud Financiera",
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onBackground
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                            MoneyCard(
+                                modifier = Modifier.weight(1f),
+                                title = translations["collected"] ?: "Recaudado",
+                                amount = viewModel.totalCollected,
+                                icon = Icons.Rounded.CheckCircle,
+                                color = Color(0xFF10B981)
+                            )
+                            MoneyCard(
+                                modifier = Modifier.weight(1f),
+                                title = translations["pending"] ?: "Por Cobrar",
+                                amount = viewModel.totalPending,
+                                icon = Icons.Rounded.Warning,
+                                color = Color(0xFFEF4444)
+                            )
+                        }
+                        Spacer(modifier = Modifier.height(24.dp))
+
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(Icons.Default.NotificationsActive, contentDescription = null, tint = Color(0xFFF59E0B))
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                text = translations["require_approval"] ?: "Requieren tu Aprobación",
+                                fontSize = 18.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onBackground
+                            )
+                        }
+                        Text(
+                            text = translations["notified_payments"] ?: "Pagos notificados por los miembros.",
+                            fontSize = 14.sp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                    }
+
+                    if (viewModel.approvalsNeeded.isEmpty()) {
+                        item {
+                            Card(
+                                modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+                                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                                border = BorderStroke(1.dp, MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.2f))
+                            ) {
+                                Column(
+                                    modifier = Modifier.padding(32.dp).fillMaxWidth(),
+                                    horizontalAlignment = Alignment.CenterHorizontally
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.TaskAlt,
+                                        contentDescription = null,
+                                        tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
+                                        modifier = Modifier.size(48.dp)
+                                    )
+                                    Spacer(modifier = Modifier.height(8.dp))
+                                    Text(
+                                        text = translations["no_pending_payments"] ?: "No hay pagos pendientes de revisión.",
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        fontSize = 14.sp
+                                    )
+                                }
+                            }
+                        }
+                    } else {
+                        items(viewModel.approvalsNeeded) { item ->
+                            ApprovalCard(
+                                item = item,
+                                onApprove = { viewModel.approvePayment(context, item.contributionId) }
+                            )
+                        }
+                    }
+                    item { Spacer(modifier = Modifier.height(40.dp)) }
+                }
             }
         }
     }
@@ -146,17 +270,31 @@ fun Dashboard(viewModel: DashboardViewModel, context: Context, navController: Na
 fun SmallMetricCard(modifier: Modifier, title: String, value: String, icon: ImageVector, color: Color) {
     Card(
         modifier = modifier,
-        colors = CardDefaults.cardColors(containerColor = Color.White),
-        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.1f))
     ) {
         Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
             Box(modifier = Modifier.background(color.copy(alpha = 0.1f), RoundedCornerShape(8.dp)).padding(8.dp)) {
                 Icon(icon, contentDescription = null, tint = color, modifier = Modifier.size(20.dp))
             }
             Spacer(modifier = Modifier.width(12.dp))
-            Column {
-                Text(title, fontSize = 12.sp, color = Color(0xFF64748B))
-                Text(value, fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Color(0xFF1E293B))
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = title,
+                    fontSize = 12.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+                Text(
+                    text = value,
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
             }
         }
     }
@@ -166,27 +304,44 @@ fun SmallMetricCard(modifier: Modifier, title: String, value: String, icon: Imag
 fun MoneyCard(modifier: Modifier = Modifier, title: String, amount: Double, icon: ImageVector, color: Color) {
     Card(
         modifier = modifier,
-        colors = CardDefaults.cardColors(containerColor = Color.White),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.1f))
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(icon, contentDescription = null, tint = color, modifier = Modifier.size(18.dp))
                 Spacer(modifier = Modifier.width(6.dp))
-                Text(title, fontSize = 13.sp, color = Color(0xFF64748B), fontWeight = FontWeight.Medium)
+                Text(
+                    text = title,
+                    fontSize = 13.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    fontWeight = FontWeight.Medium,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
             }
             Spacer(modifier = Modifier.height(8.dp))
-            Text("S/ ${String.format(Locale.US, "%.2f", amount)}", fontSize = 22.sp, fontWeight = FontWeight.Bold, color = Color(0xFF1E293B))
+            Text(
+                text = "S/ ${String.format(Locale.US, "%.2f", amount)}",
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onSurface,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
         }
     }
 }
 
 @Composable
 fun ApprovalCard(item: ApprovalItem, onApprove: () -> Unit) {
+    val translations = com.appsmoviles.splitly.utils.LocalTranslations.current
     Card(
         modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.1f))
     ) {
         Row(
             modifier = Modifier.padding(16.dp).fillMaxWidth(),
@@ -194,19 +349,41 @@ fun ApprovalCard(item: ApprovalItem, onApprove: () -> Unit) {
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Column(modifier = Modifier.weight(1f)) {
-                Text(item.memberName, fontWeight = FontWeight.Bold, fontSize = 16.sp, color = Color(0xFF1E293B))
-                Text("Hogar: ${item.householdName}", fontSize = 12.sp, color = Color(0xFF64748B))
+                Text(
+                    text = item.memberName,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 16.sp,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+                Text(
+                    text = "${translations["household"] ?: "Hogar"}: ${item.householdName}",
+                    fontSize = 12.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
                 Spacer(modifier = Modifier.height(4.dp))
-                Text("S/ ${String.format(Locale.US, "%.2f", item.amount)}", fontWeight = FontWeight.ExtraBold, fontSize = 18.sp, color = Color(0xFFF59E0B))
+                Text(
+                    text = "S/ ${String.format(Locale.US, "%.2f", item.amount)}",
+                    fontWeight = FontWeight.ExtraBold,
+                    fontSize = 18.sp,
+                    color = Color(0xFFF59E0B),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
             }
+            Spacer(modifier = Modifier.width(8.dp))
             Button(
                 onClick = onApprove,
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF10B981)),
-                shape = RoundedCornerShape(8.dp)
+                shape = RoundedCornerShape(8.dp),
+                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp)
             ) {
                 Icon(Icons.Default.Check, contentDescription = null, modifier = Modifier.size(18.dp))
                 Spacer(modifier = Modifier.width(4.dp))
-                Text("Aprobar")
+                Text(text = translations["approve"] ?: "Aprobar", fontSize = 12.sp)
             }
         }
     }

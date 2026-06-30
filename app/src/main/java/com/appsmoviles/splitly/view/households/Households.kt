@@ -4,19 +4,9 @@ import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
 import android.widget.Toast
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -24,32 +14,16 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Home
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.Lifecycle
@@ -65,8 +39,10 @@ import org.json.JSONObject
 fun Households(
     context: Context,
     navController: NavHostController,
-    viewModel: HouseholdViewModel = viewModel()
+    viewModel: HouseholdViewModel = viewModel(),
+    onOpenDrawer: () -> Unit = {}
 ) {
+    val translations = com.appsmoviles.splitly.utils.LocalTranslations.current
     var userId by remember { mutableStateOf(-1) }
     var showDialog by remember { mutableStateOf(false) }
 
@@ -96,26 +72,31 @@ fun Households(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Mis Hogares", fontWeight = FontWeight.Bold) },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White)
+                title = { Text(translations["my_households"] ?: "Mis Hogares", fontWeight = FontWeight.Bold) },
+                navigationIcon = {
+                    IconButton(onClick = onOpenDrawer) {
+                        Icon(imageVector = Icons.Default.Menu, contentDescription = "Menu")
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.surface)
             )
         },
         floatingActionButton = {
             if (userId != -1) {
                 FloatingActionButton(
                     onClick = { showDialog = true },
-                    containerColor = Color(0xFF6366F1),
-                    contentColor = Color.White
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = MaterialTheme.colorScheme.onPrimary
                 ) {
-                    Icon(Icons.Default.Add, contentDescription = "Agregar Hogar")
+                    Icon(Icons.Default.Add, contentDescription = null)
                 }
             }
         },
-        containerColor = Color(0xFFF8FAFC)
+        containerColor = MaterialTheme.colorScheme.background
     ) { padding ->
         if (viewModel.isLoading) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator(color = Color(0xFF6366F1))
+                CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
             }
         } else {
             LazyColumn(
@@ -127,8 +108,8 @@ fun Households(
             ) {
                 item {
                     Text(
-                        text = "Crea un hogar, copia el código e invita a tus roomies.",
-                        color = Color(0xFF64748B),
+                        text = translations["household_invite_hint"] ?: "Crea un hogar, copia el código e invita a tus roomies.",
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                         fontSize = 14.sp
                     )
                     Spacer(modifier = Modifier.height(8.dp))
@@ -136,7 +117,10 @@ fun Households(
 
                 if (viewModel.households.isEmpty()) {
                     item {
-                        Text("No administras ningún hogar todavía. Toca el botón + para crear uno.", color = Color.Gray)
+                        Text(
+                            text = translations["no_households_hint"] ?: "No administras ningún hogar todavía. Toca el botón + para crear uno.",
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
                     }
                 } else {
                     items(viewModel.households.filterNotNull()) { household ->
@@ -161,7 +145,7 @@ fun Households(
                     ) {
                         showDialog = false
                         viewModel.getHouseholdsByRepresentativeId(userId) // Recargamos la lista
-                        Toast.makeText(context, "Hogar creado exitosamente", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(context, translations["household_created_success"] ?: "Hogar creado exitosamente", Toast.LENGTH_SHORT).show()
                     }
                 }
             )
@@ -171,10 +155,12 @@ fun Households(
 
 @Composable
 fun HouseholdCard(context: Context, household: Household, navController: NavHostController) {
+    val translations = com.appsmoviles.splitly.utils.LocalTranslations.current
     Card(
         modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.1f))
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Row(
@@ -182,53 +168,83 @@ fun HouseholdCard(context: Context, household: Household, navController: NavHost
                 horizontalArrangement = Arrangement.SpaceBetween,
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Box(modifier = Modifier.background(Color(0xFFE0E7FF), RoundedCornerShape(8.dp)).padding(10.dp)) {
-                        Icon(Icons.Default.Home, contentDescription = null, tint = Color(0xFF4F46E5))
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Box(modifier = Modifier.background(MaterialTheme.colorScheme.primary.copy(alpha = 0.12f), RoundedCornerShape(8.dp)).padding(10.dp)) {
+                        Icon(Icons.Default.Home, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
                     }
                     Spacer(modifier = Modifier.width(12.dp))
-                    Column {
-                        Text(text = household.name ?: "Hogar", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Color(0xFF1E293B))
-                        Text(text = "${household.memberCount ?: 0} Miembros", fontSize = 13.sp, color = Color(0xFF64748B))
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = household.name ?: "Hogar",
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurface,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                        Text(
+                            text = "${household.memberCount ?: 0} ${translations["members_count"] ?: "Miembros"}",
+                            fontSize = 13.sp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
                     }
                 }
+
+                Spacer(modifier = Modifier.width(8.dp))
 
                 Button(
                     onClick = {
                         val prefs = context.getSharedPreferences("splitly_prefs", Context.MODE_PRIVATE)
                         prefs.edit().putString("householdId", household.id).apply()
-                        Toast.makeText(context, "Administrando: ${household.name}", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(context, "${translations["administering"] ?: "Administrando:"} ${household.name}", Toast.LENGTH_SHORT).show()
                         navController.navigate("Dashboard")
                     },
                     colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF10B981)),
                     shape = RoundedCornerShape(8.dp),
                     contentPadding = PaddingValues(horizontal = 12.dp, vertical = 4.dp)
                 ) {
-                    Text("Administrar", fontSize = 12.sp)
+                    Text(translations["administer"] ?: "Administrar", fontSize = 12.sp)
                 }
             }
 
             Spacer(modifier = Modifier.height(16.dp))
-            HorizontalDivider(color = Color(0xFFF1F5F9))
+            HorizontalDivider(color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.1f))
             Spacer(modifier = Modifier.height(16.dp))
 
             Row(
-                modifier = Modifier.fillMaxWidth().background(Color(0xFFF8FAFC), RoundedCornerShape(8.dp)).padding(12.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(MaterialTheme.colorScheme.background, RoundedCornerShape(8.dp))
+                    .padding(12.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Text(text = household.id ?: "Generando...", fontSize = 14.sp, fontWeight = androidx.compose.ui.text.font.FontWeight.Medium, color = Color(0xFF334155))
+                Text(
+                    text = household.id ?: "Generando...",
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Medium,
+                    color = MaterialTheme.colorScheme.onBackground,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.weight(1f)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
                 IconButton(
                     onClick = {
                         household.id?.let {
                             val clipboardManager = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
                             clipboardManager.setPrimaryClip(ClipData.newPlainText("Código", it))
-                            Toast.makeText(context, "Código copiado", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(context, translations["code_copied"] ?: "Código copiado", Toast.LENGTH_SHORT).show()
                         }
                     },
                     modifier = Modifier.size(24.dp)
                 ) {
-                    Icon(Icons.Default.ContentCopy, contentDescription = "Copiar", tint = Color(0xFF6366F1))
+                    Icon(Icons.Default.ContentCopy, contentDescription = "Copiar", tint = MaterialTheme.colorScheme.primary)
                 }
             }
         }

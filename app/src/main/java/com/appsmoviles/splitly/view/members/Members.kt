@@ -17,17 +17,21 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -37,6 +41,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.Lifecycle
@@ -52,8 +57,10 @@ import com.appsmoviles.splitly.viewmodel.HouseholdMemberViewModel
 fun Members(
     context: Context,
     navController: NavHostController,
-    viewModel: HouseholdMemberViewModel = viewModel()
+    viewModel: HouseholdMemberViewModel = viewModel(),
+    onOpenDrawer: () -> Unit = {}
 ) {
+    val translations = com.appsmoviles.splitly.utils.LocalTranslations.current
     var activeHouseholdId by remember { mutableStateOf("") }
     val lifecycleOwner = LocalLifecycleOwner.current
 
@@ -77,19 +84,24 @@ fun Members(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Miembros del Hogar", fontWeight = FontWeight.Bold) },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White)
+                title = { Text(translations["members_title"] ?: "Miembros del Hogar", fontWeight = FontWeight.Bold) },
+                navigationIcon = {
+                    IconButton(onClick = onOpenDrawer) {
+                        Icon(imageVector = Icons.Default.Menu, contentDescription = "Menu")
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.surface)
             )
         },
-        containerColor = Color(0xFFF8FAFC)
+        containerColor = MaterialTheme.colorScheme.background
     ) { padding ->
         if (activeHouseholdId.isEmpty()) {
             Box(modifier = Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
-                Text("Ve a 'Mis Hogares' y selecciona uno para administrar.", color = Color.Gray)
+                Text(translations["select_household_first"] ?: "Ve a 'Mis Hogares' y selecciona uno para administrar.", color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         } else if (viewModel.isLoading) {
             Box(modifier = Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator(color = Color(0xFF6366F1))
+                CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
             }
         } else {
             val members = viewModel.householdMembers[activeHouseholdId] ?: emptyList()
@@ -99,12 +111,18 @@ fun Members(
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 item {
-                    Text("Integrantes activos en esta casa:", color = Color(0xFF64748B), fontSize = 14.sp)
+                    Text(
+                        text = translations["active_members_hint"] ?: "Integrantes activos en esta casa:",
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        fontSize = 14.sp
+                    )
                     Spacer(modifier = Modifier.height(8.dp))
                 }
 
                 if (members.isEmpty()) {
-                    item { Text("No hay miembros unidos todavía.", color = Color.Gray) }
+                    item {
+                        Text(translations["no_members_yet"] ?: "No hay miembros unidos todavía.", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
                 } else {
                     items(members.filterNotNull()) { user ->
                         MemberItemCard(user)
@@ -117,36 +135,58 @@ fun Members(
 
 @Composable
 fun MemberItemCard(user: User) {
-    val displayName = user.personName?.takeIf { it.isNotEmpty() } ?: "Usuario Nuevo"
+    val translations = com.appsmoviles.splitly.utils.LocalTranslations.current
+    val displayName = user.personName?.takeIf { it.isNotEmpty() } ?: (translations["new_user"] ?: "Usuario Nuevo")
     Card(
         modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
-        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
+        border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.1f))
     ) {
         Row(
             modifier = Modifier.padding(16.dp).fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Box(
-                modifier = Modifier.size(48.dp).background(Color(0xFFE0F2FE), CircleShape),
+                modifier = Modifier.size(48.dp).background(MaterialTheme.colorScheme.primary.copy(alpha = 0.12f), CircleShape),
                 contentAlignment = Alignment.Center
             ) {
                 Text(
                     text = displayName.take(1).uppercase(),
-                    color = Color(0xFF0284C7),
+                    color = MaterialTheme.colorScheme.primary,
                     fontWeight = FontWeight.Bold,
                     fontSize = 20.sp
                 )
             }
             Spacer(modifier = Modifier.width(16.dp))
             Column(modifier = Modifier.weight(1f)) {
-                Text(text = displayName, fontWeight = FontWeight.Bold, fontSize = 16.sp, color = Color(0xFF1E293B))
-                Text(text = user.email ?: "Sin correo", fontSize = 13.sp, color = Color(0xFF64748B))            }
-            // Etiqueta de Rol
+                Text(
+                    text = displayName,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 16.sp,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+                Text(
+                    text = user.email ?: (translations["no_email"] ?: "Sin correo"),
+                    fontSize = 13.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
+            Spacer(modifier = Modifier.width(8.dp))
+            // Rol label badge
             Box(
-                modifier = Modifier.background(Color(0xFFF1F5F9), RoundedCornerShape(12.dp)).padding(horizontal = 8.dp, vertical = 4.dp)
+                modifier = Modifier.background(MaterialTheme.colorScheme.primaryContainer, RoundedCornerShape(12.dp)).padding(horizontal = 8.dp, vertical = 4.dp)
             ) {
-                Text(text = user.role ?: "Member", fontSize = 11.sp, color = Color(0xFF475569), fontWeight = FontWeight.Medium)
+                Text(
+                    text = user.role ?: "Member",
+                    fontSize = 11.sp,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer,
+                    fontWeight = FontWeight.Medium
+                )
             }
         }
     }

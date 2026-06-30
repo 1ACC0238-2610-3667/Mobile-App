@@ -23,6 +23,7 @@ class DashboardViewModel : ViewModel() {
 
     var userName by mutableStateOf("User")
     var email by mutableStateOf("")
+    var activeHouseholdName by mutableStateOf<String?>(null)
 
     var totalHouseholdsCount by mutableStateOf(0)
     var totalMembersCount by mutableStateOf(0)
@@ -61,6 +62,12 @@ class DashboardViewModel : ViewModel() {
                     val householdsRes = RetrofitClient.householdWebService.getHouseHoldByRepresentativeId(userId)
                     if (householdsRes.isSuccessful && householdsRes.body() != null) {
                         val householdsList = householdsRes.body()!!
+
+                        val activeId = prefs.getString("householdId", null)
+                        val activeHousehold = householdsList.find { it.id == activeId }
+                        withContext(Dispatchers.Main) {
+                            activeHouseholdName = activeHousehold?.name
+                        }
 
                         val usersRes = RetrofitClient.userWebService.getAllUsers()
                         val userMap: Map<Int?, String> = if (usersRes.isSuccessful && usersRes.body() != null) {

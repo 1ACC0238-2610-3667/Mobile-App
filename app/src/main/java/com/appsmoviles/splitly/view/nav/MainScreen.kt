@@ -23,10 +23,10 @@ import com.appsmoviles.splitly.view.members.Members
 import com.appsmoviles.splitly.viewmodel.AuthViewModel
 import com.appsmoviles.splitly.viewmodel.BillViewModel
 import com.appsmoviles.splitly.viewmodel.HouseholdMemberViewModel
-import com.appsmoviles.splitly.viewmodel.SettingsViewModel
 import com.appsmoviles.splitly.viewmodel.contributions.ContributionViewModel
 import com.appsmoviles.splitly.viewmodel.dashboard.DashboardViewModel
 import com.appsmoviles.splitly.viewmodel.household.HouseholdViewModel
+import com.appsmoviles.splitly.viewmodel.SettingsViewModel
 import kotlinx.coroutines.launch
 
 @Composable
@@ -68,29 +68,61 @@ fun MainScreen(
             }
         }
     ) {
-        Scaffold(
-            bottomBar = {
-                AppNavigationBar(
-                    navController = navController,
-                    onOpenDrawer = {
-                        scope.launch { drawerState.open() }
-                    }
-                )
-            }
-        ) { padding ->
+        Scaffold { padding ->
             NavHost(
                 navController = navController,
                 startDestination = "Dashboard",
                 modifier = Modifier.padding(padding)
             ) {
-                composable("Dashboard") { Dashboard(dashboardViewModel, context, navController) }
-                composable("Expenses") { Expenses(context, navController, contributionViewModel) }
-                composable("Households") { Households(context, navController, householdViewModel) }
-                composable("Members") { Members(context, navController, householdMemberViewModel) }
-                composable("Settings") { SettingsScreen(context, rootNav, settingsViewModel, authViewModel) }
-                composable("Contributions") { Contributions(context, navController, billViewModel) }
-
-
+                composable("Dashboard") {
+                    Dashboard(
+                        viewModel = dashboardViewModel,
+                        context = context,
+                        navController = navController,
+                        onOpenDrawer = { scope.launch { drawerState.open() } }
+                    )
+                }
+                composable("Expenses") {
+                    Expenses(
+                        context = context,
+                        navController = navController,
+                        contributionViewModel = contributionViewModel,
+                        onOpenDrawer = { scope.launch { drawerState.open() } }
+                    )
+                }
+                composable("Households") {
+                    Households(
+                        context = context,
+                        navController = navController,
+                        viewModel = householdViewModel,
+                        onOpenDrawer = { scope.launch { drawerState.open() } }
+                    )
+                }
+                composable("Members") {
+                    Members(
+                        context = context,
+                        navController = navController,
+                        viewModel = householdMemberViewModel,
+                        onOpenDrawer = { scope.launch { drawerState.open() } }
+                    )
+                }
+                composable("Settings") {
+                    SettingsScreen(
+                        context = context,
+                        navController = rootNav,
+                        settingsViewModel = settingsViewModel,
+                        authViewModel = authViewModel,
+                        onOpenDrawer = { scope.launch { drawerState.open() } }
+                    )
+                }
+                composable("Contributions") {
+                    Contributions(
+                        context = context,
+                        navController = navController,
+                        billViewModel = billViewModel,
+                        onOpenDrawer = { scope.launch { drawerState.open() } }
+                    )
+                }
             }
         }
     }

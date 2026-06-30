@@ -1,5 +1,6 @@
 package com.appsmoviles.splitly.view.nav
 
+import android.content.Context
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -23,13 +24,13 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
-import android.content.Context
 import com.appsmoviles.splitly.R
 
 @Composable
 fun Drawer(nav: NavHostController, onCloseDrawer: () -> Unit, onLogOut: () -> Unit) {
     val context = LocalContext.current
     val sharedPreferences = remember { context.getSharedPreferences("splitly_prefs", Context.MODE_PRIVATE) }
+    val translations = com.appsmoviles.splitly.utils.LocalTranslations.current
 
     val navBackStackEntry by nav.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
@@ -37,12 +38,12 @@ fun Drawer(nav: NavHostController, onCloseDrawer: () -> Unit, onLogOut: () -> Un
     Column(
         modifier = Modifier
             .fillMaxHeight()
+            .background(MaterialTheme.colorScheme.surface)
             .padding(horizontal = 12.dp, vertical = 24.dp)
     ) {
         // Drawer Header
         Column(
-            modifier = Modifier
-                .padding(horizontal = 16.dp, vertical = 16.dp),
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 16.dp),
             horizontalAlignment = Alignment.Start
         ) {
             Box(
@@ -69,23 +70,27 @@ fun Drawer(nav: NavHostController, onCloseDrawer: () -> Unit, onLogOut: () -> Un
                 color = MaterialTheme.colorScheme.primary
             )
             Text(
-                text = "Manage your expenses easily",
+                text = translations["join_splitly"] ?: "Manage your expenses easily",
                 fontSize = 14.sp,
-                color = Color.Gray
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
 
         Spacer(modifier = Modifier.height(16.dp))
-        HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), thickness = 0.5.dp, color = Color.LightGray)
+        HorizontalDivider(
+            modifier = Modifier.padding(horizontal = 16.dp),
+            thickness = 0.5.dp,
+            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.2f)
+        )
         Spacer(modifier = Modifier.height(16.dp))
 
         val menuItems = listOf(
-            DrawerItem("Dashboard", "Dashboard", Icons.Rounded.Dashboard),
-            DrawerItem("Households", "Households", Icons.Rounded.House),
-            DrawerItem("Members", "Members", Icons.Rounded.Person),
-            DrawerItem("Expenses", "Expenses", Icons.Rounded.Wallet),
-            DrawerItem("Contributions", "Contributions", Icons.Rounded.BarChart),
-            DrawerItem("Settings", "Settings", Icons.Rounded.Settings)
+            DrawerItem(translations["dashboard"] ?: "Dashboard", "Dashboard", Icons.Rounded.Dashboard),
+            DrawerItem(translations["manage_households_title"] ?: "Hogares", "Households", Icons.Rounded.House),
+            DrawerItem(translations["manage_members_title"] ?: "Miembros", "Members", Icons.Rounded.Person),
+            DrawerItem(translations["manage_expenses_title"] ?: "Gasto", "Expenses", Icons.Rounded.Wallet),
+            DrawerItem(translations["manage_contributions_title"] ?: "Historial", "Contributions", Icons.Rounded.BarChart),
+            DrawerItem(translations["settings_title"] ?: "Ajustes", "Settings", Icons.Rounded.Settings)
         )
 
         menuItems.forEach { item ->
@@ -116,7 +121,7 @@ fun Drawer(nav: NavHostController, onCloseDrawer: () -> Unit, onLogOut: () -> Un
                 },
                 shape = RoundedCornerShape(12.dp),
                 colors = NavigationDrawerItemDefaults.colors(
-                    selectedContainerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f),
+                    selectedContainerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f),
                     unselectedContainerColor = Color.Transparent,
                     selectedTextColor = MaterialTheme.colorScheme.primary,
                     unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant
@@ -127,13 +132,17 @@ fun Drawer(nav: NavHostController, onCloseDrawer: () -> Unit, onLogOut: () -> Un
 
         Spacer(modifier = Modifier.weight(1f))
         
-        HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), thickness = 0.5.dp, color = Color.LightGray)
+        HorizontalDivider(
+            modifier = Modifier.padding(horizontal = 16.dp),
+            thickness = 0.5.dp,
+            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.2f)
+        )
         Spacer(modifier = Modifier.height(16.dp))
 
         NavigationDrawerItem(
             label = { 
                 Text(
-                    text = "Log Out",
+                    text = translations["logout"] ?: "Log Out",
                     color = MaterialTheme.colorScheme.error,
                     modifier = Modifier.padding(start = 8.dp)
                 ) 
@@ -151,6 +160,12 @@ fun Drawer(nav: NavHostController, onCloseDrawer: () -> Unit, onLogOut: () -> Un
                 ) 
             },
             shape = RoundedCornerShape(12.dp),
+            colors = NavigationDrawerItemDefaults.colors(
+                selectedContainerColor = Color.Transparent,
+                unselectedContainerColor = Color.Transparent,
+                selectedTextColor = MaterialTheme.colorScheme.error,
+                unselectedTextColor = MaterialTheme.colorScheme.error
+            ),
             modifier = Modifier.padding(vertical = 2.dp)
         )
     }

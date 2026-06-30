@@ -36,8 +36,14 @@ class MainActivity : ComponentActivity() {
 
         enableEdgeToEdge()
         setContent {
-            SplitlyTheme {
-                Navigator(authViewModel, dashboardViewModel, settingsViewModel, householdViewModel, householdMemberViewModel, billViewModel, contributionViewModel, this)
+            val isDarkMode = com.appsmoviles.splitly.model.client.CredentialsSessionManager.getDarkMode1()
+            val language = com.appsmoviles.splitly.model.client.CredentialsSessionManager.getLanguage1()
+            val translations = if (language == "en") com.appsmoviles.splitly.utils.Translations.en else com.appsmoviles.splitly.utils.Translations.es
+
+            androidx.compose.runtime.CompositionLocalProvider(com.appsmoviles.splitly.utils.LocalTranslations provides translations) {
+                SplitlyTheme(darkTheme = isDarkMode) {
+                    Navigator(authViewModel, dashboardViewModel, settingsViewModel, householdViewModel, householdMemberViewModel, billViewModel, contributionViewModel, this)
+                }
             }
         }
     }
