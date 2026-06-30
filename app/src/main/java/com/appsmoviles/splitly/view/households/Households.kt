@@ -9,6 +9,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -126,13 +127,14 @@ fun Households(
                 if (viewModel.households.isEmpty() && !viewModel.isLoading) {
                     item {
                         Text(
-                            text = translations["no_households_hint"] ?: "No administras ningún hogar todavía. Toca el botón + para crear uno.",
+                            text = translations["no_households_hint"] ?: "You don't manage any household yet. Tap + to create one.",
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                 } else {
                     items(viewModel.households.filterNotNull()) { household ->
-                        HouseholdCard(context, household, navController, dashboardViewModel, householdMemberViewModel)
+                        val hasPendingDebts = viewModel.householdHasDebtsMap[household.id] ?: false
+                        HouseholdCard(context, household, navController, dashboardViewModel, householdMemberViewModel, hasPendingDebts)
                     }
                 }
 
@@ -168,7 +170,8 @@ fun HouseholdCard(
     household: Household,
     navController: NavHostController,
     dashboardViewModel: com.appsmoviles.splitly.viewmodel.dashboard.DashboardViewModel,
-    householdMemberViewModel: com.appsmoviles.splitly.viewmodel.HouseholdMemberViewModel
+    householdMemberViewModel: com.appsmoviles.splitly.viewmodel.HouseholdMemberViewModel,
+    hasPendingDebts: Boolean = false
 ) {
     val translations = com.appsmoviles.splitly.utils.LocalTranslations.current
     Card(
@@ -207,6 +210,26 @@ fun HouseholdCard(
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
                         )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
+                            val dotColor = if (hasPendingDebts) Color(0xFFEF4444) else Color(0xFF10B981)
+                            val statusText = if (hasPendingDebts) (translations["pending_debts"] ?: "Deudas pendientes") else (translations["no_debts"] ?: "Al día")
+                            
+                            Box(
+                                modifier = Modifier
+                                    .size(8.dp)
+                                    .background(dotColor, CircleShape)
+                            )
+                            Text(
+                                text = statusText,
+                                fontSize = 12.sp,
+                                color = dotColor,
+                                fontWeight = FontWeight.Medium
+                            )
+                        }
                     }
                 }
 

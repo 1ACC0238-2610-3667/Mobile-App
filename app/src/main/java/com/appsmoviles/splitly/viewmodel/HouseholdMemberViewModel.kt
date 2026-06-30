@@ -10,15 +10,24 @@ import com.appsmoviles.splitly.model.beans.householdmanagement.Invitation
 import com.appsmoviles.splitly.model.beans.iam.User
 import com.appsmoviles.splitly.model.client.RetrofitClient
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+
+data class MemberWithDebt(
+    val user: User,
+    val memberId: String,
+    val pendingDebt: Double
+)
 
 class HouseholdMemberViewModel: ViewModel() {
 
     var isLoading by mutableStateOf(true)
     var errorMessage: String? by mutableStateOf(null)
 
-    var householdMembers: MutableMap<String, ArrayList<User?>> = mutableMapOf()
+    var householdMembers: MutableMap<String, List<MemberWithDebt>> = mutableMapOf()
     var invitationResponse: Invitation? by mutableStateOf(null)
 
     var lastUpdated by mutableStateOf(0L)
@@ -44,12 +53,30 @@ class HouseholdMemberViewModel: ViewModel() {
                     if (auxHouseholdMembersRes.isSuccessful && auxHouseholdMembersRes.body() != null) {
                         val auxHouseholdMembers = auxHouseholdMembersRes.body()!!
 
-                        val usersProfileListPerHousehold = arrayListOf<User?>()
-                        for (hm in auxHouseholdMembers) {
-                            usersProfileListPerHousehold.add(users.find { it.id == hm.userId })
+                        val listPerHousehold = coroutineScope {
+                            auxHouseholdMembers.map { hm ->
+                                val memberId = hm.id
+                                async(Dispatchers.IO) {
+                                    val user = users.find { it.id == hm.userId } ?: return@async null
+                                    var pendingDebt = 0.0
+                                    if (memberId != null) {
+                                        val mcRes = RetrofitClient.memberContributionWebService.getMemberContributionsByMemberId(memberId)
+                                        if (mcRes.isSuccessful && mcRes.body() != null) {
+                                            val mcs = mcRes.body()!!
+                                            for (mc in mcs) {
+                                                val status = mc.status?.lowercase() ?: "pending"
+                                                if (status != "done" && status != "paid" && status != "approved") {
+                                                    pendingDebt += mc.amount
+                                                }
+                                            }
+                                        }
+                                    }
+                                    MemberWithDebt(user, memberId ?: "", pendingDebt)
+                                }
+                            }.awaitAll().filterNotNull()
                         }
 
-                        householdMembers[hId] = usersProfileListPerHousehold
+                        householdMembers[hId] = listPerHousehold
                     }
                 }
 

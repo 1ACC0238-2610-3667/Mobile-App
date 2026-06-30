@@ -31,6 +31,9 @@ class DashboardViewModel : ViewModel() {
     var totalPending by mutableStateOf(0.0)
 
     var approvalsNeeded by mutableStateOf<List<ApprovalItem>>(emptyList())
+    
+    // 1. NUEVA VARIABLE PARA LAS DEUDAS DEL REPRESENTANTE
+    var myPendingDebts by mutableStateOf<List<ApprovalItem>>(emptyList())
 
     var isLoading by mutableStateOf(true)
     var errorMessage by mutableStateOf<String?>(null)
@@ -55,7 +58,7 @@ class DashboardViewModel : ViewModel() {
                 try {
                     val json = JSONObject(userJsonStr)
                     withContext(Dispatchers.Main) {
-                        userName = json.optString("name", "User")
+                        userName = json.optString("name", "User") // <-- Aquí lee el nombre que Swagger nos devolvió
                         email = json.optString("email", "Email")
                     }
                     userId = json.optInt("id", -1)
@@ -83,6 +86,9 @@ class DashboardViewModel : ViewModel() {
                         var collected = 0.0
                         var pending = 0.0
                         val pendingApprovals = mutableListOf<ApprovalItem>()
+                        
+                        // 2. NUEVA LISTA TEMPORAL PARA MIS PROPIAS DEUDAS
+                        val myPendingList = mutableListOf<ApprovalItem>()
 
                         for (household in householdsList) {
                             val hId = household.id ?: continue
@@ -109,6 +115,11 @@ class DashboardViewModel : ViewModel() {
                                                 pendingApprovals.add(ApprovalItem(mc.id!!, hName, memberName, amount))
                                             } else {
                                                 pending += amount
+                                                
+                                                // 3. SEPARAMOS MIS DEUDAS DE LAS DE LOS DEMÁS
+                                                if (member.userId == userId) {
+                                                    myPendingList.add(ApprovalItem(mc.id!!, hName, "Mi Deuda", amount))
+                                                }
                                             }
                                         }
                                     }
@@ -122,6 +133,7 @@ class DashboardViewModel : ViewModel() {
                             totalCollected = collected
                             totalPending = pending
                             approvalsNeeded = pendingApprovals
+                            myPendingDebts = myPendingList // <- Pasamos los datos al estado de la UI
                             lastUpdated = System.currentTimeMillis()
                         }
                     } else {

@@ -64,7 +64,10 @@ object Translations {
         "create_account" to "Create Account",
         "join_splitly" to "Join Splitly and start sharing",
         "already_registered" to "Already have an account? Log In",
-        "not_registered" to "Are you registered? Sign Up Now"
+        "not_registered" to "Are you registered? Sign Up Now",
+        "pending_debts" to "Pending debts",
+        "no_debts" to "Up to date",
+        "debt" to "Debt"
     )
 
     val es = mapOf(
@@ -128,7 +131,10 @@ object Translations {
         "create_account" to "Crear Cuenta",
         "join_splitly" to "Únete a Splitly y empieza a compartir",
         "already_registered" to "¿Ya tienes una cuenta? Inicia Sesión",
-        "not_registered" to "¿No estás registrado? Regístrate Ahora"
+        "not_registered" to "¿No estás registrado? Regístrate Ahora",
+        "pending_debts" to "Deudas pendientes",
+        "no_debts" to "Al día",
+        "debt" to "Deuda"
     )
 }
 

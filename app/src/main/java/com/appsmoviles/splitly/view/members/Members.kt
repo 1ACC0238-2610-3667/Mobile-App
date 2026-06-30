@@ -52,6 +52,7 @@ import androidx.navigation.NavHostController
 import com.appsmoviles.splitly.model.beans.householdmanagement.Household
 import com.appsmoviles.splitly.model.beans.iam.User
 import com.appsmoviles.splitly.viewmodel.HouseholdMemberViewModel
+import com.appsmoviles.splitly.viewmodel.MemberWithDebt
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -135,8 +136,8 @@ fun Members(
                                 Text(translations["no_members_yet"] ?: "No hay miembros unidos todavía.", color = MaterialTheme.colorScheme.onSurfaceVariant)
                             }
                         } else {
-                            items(members.filterNotNull()) { user ->
-                                MemberItemCard(user)
+                            items(members) { member ->
+                                MemberItemCard(member)
                             }
                         }
                     }
@@ -147,7 +148,8 @@ fun Members(
 }
 
 @Composable
-fun MemberItemCard(user: User) {
+fun MemberItemCard(member: MemberWithDebt) {
+    val user = member.user
     val translations = com.appsmoviles.splitly.utils.LocalTranslations.current
     val displayName = user.personName?.takeIf { it.isNotEmpty() } ?: (translations["new_user"] ?: "Usuario Nuevo")
     Card(
@@ -187,6 +189,19 @@ fun MemberItemCard(user: User) {
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                val debtText = if (member.pendingDebt > 0.0) {
+                    "${translations["debt"] ?: "Deuda"}: S/ ${String.format(java.util.Locale.US, "%.2f", member.pendingDebt)}"
+                } else {
+                    translations["no_debts"] ?: "Al día"
+                }
+                val debtColor = if (member.pendingDebt > 0.0) Color(0xFFEF4444) else Color(0xFF10B981)
+                Text(
+                    text = debtText,
+                    fontSize = 13.sp,
+                    color = debtColor,
+                    fontWeight = FontWeight.Medium
                 )
             }
             Spacer(modifier = Modifier.width(8.dp))

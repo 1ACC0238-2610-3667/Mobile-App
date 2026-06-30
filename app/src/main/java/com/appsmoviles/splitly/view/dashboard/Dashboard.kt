@@ -215,7 +215,64 @@ fun Dashboard(
                                 )
                             }
                             Spacer(modifier = Modifier.height(24.dp))
+                        }
 
+                        // --- NUEVA SECCIÓN: MIS DEUDAS (REPRESENTANTE) ---
+                        if (viewModel.myPendingDebts.isNotEmpty()) {
+                            item {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Icon(Icons.Default.TaskAlt, contentDescription = null, tint = Color(0xFF10B981))
+                                    Spacer(modifier = Modifier.width(8.dp))
+                                    Text(
+                                        text = translations["my_pending_debts"] ?: "Mis Deudas Pendientes",
+                                        fontSize = 18.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = MaterialTheme.colorScheme.onBackground
+                                    )
+                                }
+                                Text(
+                                    text = translations["liquidate_your_debt"] ?: "Liquida tu parte del gasto en el hogar.",
+                                    fontSize = 14.sp,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                                Spacer(modifier = Modifier.height(8.dp))
+                            }
+
+                            items(viewModel.myPendingDebts) { myDebt ->
+                                Card(
+                                    modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
+                                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                                    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+                                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.1f))
+                                ) {
+                                    Row(
+                                        modifier = Modifier.padding(16.dp).fillMaxWidth(),
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.SpaceBetween
+                                    ) {
+                                        Column(modifier = Modifier.weight(1f)) {
+                                            Text("Gasto en: ${myDebt.householdName}", fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                            Spacer(modifier = Modifier.height(4.dp))
+                                            Text("S/ ${String.format(Locale.US, "%.2f", myDebt.amount)}", fontWeight = FontWeight.ExtraBold, fontSize = 18.sp, color = Color(0xFFEF4444))
+                                        }
+                                        Button(
+                                            onClick = { viewModel.approvePayment(context, myDebt.contributionId) },
+                                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF3B82F6)),
+                                            shape = RoundedCornerShape(8.dp),
+                                            contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp)
+                                        ) {
+                                            Icon(Icons.Default.Check, contentDescription = null, modifier = Modifier.size(18.dp))
+                                            Spacer(modifier = Modifier.width(4.dp))
+                                            Text(translations["pay_my_part"] ?: "Pagar mi parte", fontSize = 12.sp)
+                                        }
+                                    }
+                                }
+                            }
+                            item { Spacer(modifier = Modifier.height(16.dp)) }
+                        }
+                        // --- FIN DE LA NUEVA SECCIÓN ---
+
+                        item {
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 Icon(Icons.Default.NotificationsActive, contentDescription = null, tint = Color(0xFFF59E0B))
                                 Spacer(modifier = Modifier.width(8.dp))
