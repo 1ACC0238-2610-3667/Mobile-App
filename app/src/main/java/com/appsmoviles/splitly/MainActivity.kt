@@ -12,6 +12,7 @@ import com.appsmoviles.splitly.view.nav.Navigator
 import com.appsmoviles.splitly.viewmodel.AuthViewModel
 import com.appsmoviles.splitly.viewmodel.BillViewModel
 import com.appsmoviles.splitly.viewmodel.HouseholdMemberViewModel
+import com.appsmoviles.splitly.viewmodel.ReportsViewModel
 import com.appsmoviles.splitly.viewmodel.household.HouseholdViewModel
 import com.appsmoviles.splitly.viewmodel.SettingsViewModel
 import com.appsmoviles.splitly.viewmodel.contributions.ContributionViewModel
@@ -28,6 +29,8 @@ class MainActivity : ComponentActivity() {
 
     private val contributionViewModel by viewModels<ContributionViewModel>()
 
+    private val reportViewModel by viewModels<ReportsViewModel>()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -42,7 +45,9 @@ class MainActivity : ComponentActivity() {
 
             androidx.compose.runtime.CompositionLocalProvider(com.appsmoviles.splitly.utils.LocalTranslations provides translations) {
                 SplitlyTheme(darkTheme = isDarkMode) {
-                    Navigator(authViewModel, dashboardViewModel, settingsViewModel, householdViewModel, householdMemberViewModel, billViewModel, contributionViewModel, this)
+                    Navigator(authViewModel,
+                        dashboardViewModel, settingsViewModel, householdViewModel, householdMemberViewModel,
+                        billViewModel, contributionViewModel, reportViewModel,this)
                 }
             }
         }

@@ -90,6 +90,7 @@ fun Drawer(nav: NavHostController, onCloseDrawer: () -> Unit, onLogOut: () -> Un
             DrawerItem(translations["manage_members_title"] ?: "Miembros", "Members", Icons.Rounded.Person),
             DrawerItem(translations["manage_expenses_title"] ?: "Gasto", "Expenses", Icons.Rounded.Wallet),
             DrawerItem(translations["manage_contributions_title"] ?: "Historial", "Contributions", Icons.Rounded.BarChart),
+            DrawerItem("Reportes", "Reports", Icons.Rounded.Assessment),
             DrawerItem(translations["settings_title"] ?: "Ajustes", "Settings", Icons.Rounded.Settings)
         )
 

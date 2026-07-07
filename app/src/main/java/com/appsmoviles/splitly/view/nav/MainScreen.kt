@@ -20,9 +20,11 @@ import com.appsmoviles.splitly.view.dashboard.Dashboard
 import com.appsmoviles.splitly.view.expenses.Expenses
 import com.appsmoviles.splitly.view.households.Households
 import com.appsmoviles.splitly.view.members.Members
+import com.appsmoviles.splitly.view.reports.ReportScreen
 import com.appsmoviles.splitly.viewmodel.AuthViewModel
 import com.appsmoviles.splitly.viewmodel.BillViewModel
 import com.appsmoviles.splitly.viewmodel.HouseholdMemberViewModel
+import com.appsmoviles.splitly.viewmodel.ReportViewModel
 import com.appsmoviles.splitly.viewmodel.contributions.ContributionViewModel
 import com.appsmoviles.splitly.viewmodel.dashboard.DashboardViewModel
 import com.appsmoviles.splitly.viewmodel.household.HouseholdViewModel
@@ -39,6 +41,7 @@ fun MainScreen(
     billViewModel: BillViewModel,
     contributionViewModel: ContributionViewModel,
     authViewModel: AuthViewModel,
+    reportViewModel: ReportViewModel,
     context: Context
 ) {
     val navController = rememberNavController()
@@ -72,7 +75,7 @@ fun MainScreen(
             NavHost(
                 navController = navController,
                 startDestination = "Dashboard",
-                modifier = Modifier
+                modifier = Modifier.padding()
             ) {
                 composable("Dashboard") {
                     Dashboard(
@@ -127,7 +130,17 @@ fun MainScreen(
                         onOpenDrawer = { scope.launch { drawerState.open() } }
                     )
                 }
+                composable("Reports") {
+                    ReportScreen(
+                        reportViewModel = reportViewModel,
+                        householdViewModel = householdViewModel,
+                        billViewModel = billViewModel,
+                        contributionViewModel = contributionViewModel,
+                        isOnline = true
+                    )
+                }
             }
         }
     }
 }
+

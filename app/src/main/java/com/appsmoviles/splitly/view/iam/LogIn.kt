@@ -167,6 +167,27 @@ fun LogIn(nav: NavHostController, viewModel: AuthViewModel) {
                 }
             }
 
+            Button(
+                onClick = {
+                    viewModel.loginOffline(context) {
+                        nav.navigate("Reports") {
+                            popUpTo("LogIn") { inclusive = true }
+                        }
+                    }
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(56.dp)
+                    .padding(top = 16.dp),
+                shape = RoundedCornerShape(12.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                    contentColor = MaterialTheme.colorScheme.onSecondaryContainer
+                )
+            ) {
+                Text(text = "Entrar Offline", fontSize = 18.sp, fontWeight = FontWeight.Bold)
+            }
+
             Spacer(modifier = Modifier.height(24.dp))
 
             Row(
@@ -212,7 +233,28 @@ fun LogIn(nav: NavHostController, viewModel: AuthViewModel) {
                         textAlign = TextAlign.Center,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
-                    Spacer(modifier = Modifier.height(24.dp))
+                    Button(
+                onClick = {
+                    viewModel.loginOffline(context) {
+                        nav.navigate("Main") {
+                            popUpTo("LogIn") { inclusive = true }
+                        }
+                    }
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(56.dp)
+                    .padding(top = 16.dp),
+                shape = RoundedCornerShape(12.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                    contentColor = MaterialTheme.colorScheme.onSecondaryContainer
+                )
+            ) {
+                Text(text = "Entrar Offline", fontSize = 18.sp, fontWeight = FontWeight.Bold)
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
                     Button(
                         onClick = { viewModel.clearError() },
                         modifier = Modifier.fillMaxWidth(),
