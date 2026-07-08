@@ -25,7 +25,8 @@ data class MemberWithDebt(
     val user: User,
     val memberId: String,
     val pendingDebt: Double,
-    val debtDetails: List<DebtDetail>
+    val debtDetails: List<DebtDetail>,
+    val income: Double = 0.0
 )
 
 class HouseholdMemberViewModel: ViewModel() {
@@ -90,7 +91,7 @@ class HouseholdMemberViewModel: ViewModel() {
                                             pendingDebt = fetchedDetails.sumOf { it.amount }
                                         }
                                     }
-                                    MemberWithDebt(user, memberId ?: "", pendingDebt, details)
+                                    MemberWithDebt(user, memberId ?: "", pendingDebt, details, hm.income ?: 0.0)
                                 }
                             }.awaitAll().filterNotNull()
                         }
@@ -132,6 +133,36 @@ class HouseholdMemberViewModel: ViewModel() {
                 withContext(Dispatchers.Main) {
                     errorMessage = "Error: ${e.message}"
                     isLoading = false
+                }
+            }
+        }
+    }
+
+    fun updateMemberIncome(memberId: String, income: Double, onResult: (Boolean) -> Unit) {
+        viewModelScope.launch(Dispatchers.IO) {
+            withContext(Dispatchers.Main) {
+                isLoading = true
+                errorMessage = null
+            }
+            try {
+                val resource = com.appsmoviles.splitly.model.beans.householdmanagement.UpdateHouseholdMemberResource(
+                    income = income
+                )
+                val response = RetrofitClient.householdMemberWebService.updateHouseholdMember(memberId, resource)
+                withContext(Dispatchers.Main) {
+                    if (response.isSuccessful) {
+                        onResult(true)
+                    } else {
+                        errorMessage = "Error: ${response.code()} Message: ${response.message()}"
+                        onResult(false)
+                    }
+                    isLoading = false
+                }
+            } catch (e: Exception) {
+                withContext(Dispatchers.Main) {
+                    errorMessage = "Error: ${e.message}"
+                    isLoading = false
+                    onResult(false)
                 }
             }
         }

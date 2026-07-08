@@ -64,11 +64,13 @@ fun Expenses(
     contributionViewModel: ContributionViewModel = viewModel(),
     dashboardViewModel: com.appsmoviles.splitly.viewmodel.dashboard.DashboardViewModel = viewModel(),
     billViewModel: com.appsmoviles.splitly.viewmodel.BillViewModel = viewModel(),
+    householdMemberViewModel: com.appsmoviles.splitly.viewmodel.HouseholdMemberViewModel = viewModel(),
     onOpenDrawer: () -> Unit = {}
 ) {
     val translations = com.appsmoviles.splitly.utils.LocalTranslations.current
     var description by remember { mutableStateOf("") }
     var amount by remember { mutableStateOf("") }
+    var isProportional by remember { mutableStateOf(false) }
 
     val sdf = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.getDefault())
     val displayFormat = SimpleDateFormat("dd MMM, yyyy", Locale.getDefault())
@@ -87,6 +89,25 @@ fun Expenses(
                 creatorId = JSONObject(userStr).optInt("id", -1)
             } catch (e: Exception) { e.printStackTrace() }
         }
+    }
+
+    LaunchedEffect(activeHouseholdId) {
+        if (activeHouseholdId.isNotEmpty()) {
+            val members = householdMemberViewModel.householdMembers[activeHouseholdId]
+            if (members.isNullOrEmpty()) {
+                householdMemberViewModel.getHouseholdMembersByHouseholdId(
+                    listOf(com.appsmoviles.splitly.model.beans.householdmanagement.Household(id = activeHouseholdId)),
+                    forceRefresh = true
+                )
+            }
+        }
+    }
+
+    val membersList = householdMemberViewModel.householdMembers[activeHouseholdId]
+    val canEnableProportional = membersList != null && membersList.isNotEmpty() && membersList.all { it.income > 0.0 }
+    
+    if (!canEnableProportional && isProportional) {
+        isProportional = false
     }
 
     val datePickerDialog = remember {
@@ -176,6 +197,30 @@ fun Expenses(
 
                     Spacer(modifier = Modifier.height(16.dp))
 
+                    androidx.compose.foundation.layout.Row(
+                        modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = androidx.compose.foundation.layout.Arrangement.SpaceBetween
+                    ) {
+                        Text(translations["proportional_split"] ?: "División Proporcional al Ingreso", fontSize = 14.sp)
+                        androidx.compose.material3.Switch(
+                            checked = isProportional,
+                            onCheckedChange = { isProportional = it },
+                            enabled = canEnableProportional,
+                            colors = androidx.compose.material3.SwitchDefaults.colors(checkedThumbColor = MaterialTheme.colorScheme.primary, checkedTrackColor = MaterialTheme.colorScheme.primaryContainer)
+                        )
+                    }
+                    if (!canEnableProportional) {
+                        Text(
+                            text = translations["proportional_split_disabled_hint"] ?: "Para habilitar, todos los miembros deben registrar su ingreso mensual.",
+                            color = MaterialTheme.colorScheme.error,
+                            fontSize = 12.sp,
+                            modifier = Modifier.padding(horizontal = 4.dp, vertical = 2.dp)
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -224,7 +269,8 @@ fun Expenses(
                             totalAmount = parsedAmount,
                             creatorId = creatorId,
                             paymentDate = sdf.format(today.time),
-                            deadline = sdf.format(deadlineCalendar.time)
+                            deadline = sdf.format(deadlineCalendar.time),
+                            isProportional = isProportional
                         ) {
                             Toast.makeText(context, translations["expense_created_success"] ?: "¡Gasto dividido y notificado con éxito!", Toast.LENGTH_LONG).show()
                             description = ""

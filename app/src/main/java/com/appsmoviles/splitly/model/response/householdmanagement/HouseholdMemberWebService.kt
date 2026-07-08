@@ -20,6 +20,10 @@ interface HouseholdMemberWebService: WebService {
         @Body householdMember: HouseholdMember
     ) : Response<HouseholdMember>
 
-
+    @retrofit2.http.PUT("household_member/{id}")
+    suspend fun updateHouseholdMember(
+        @Path("id") id: String,
+        @Body resource: com.appsmoviles.splitly.model.beans.householdmanagement.UpdateHouseholdMemberResource
+    ) : Response<HouseholdMember>
 
 }
