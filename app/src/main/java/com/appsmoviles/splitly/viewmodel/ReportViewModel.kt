@@ -1,6 +1,6 @@
 package com.appsmoviles.splitly.viewmodel
 
-import android.content.Context
+// import android.content.Context
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -22,8 +22,8 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-class ReportViewModel(context: Context) : ViewModel() {
-    private val repository = ReportRepository(context)
+class ReportViewModel : ViewModel() {
+    // private val repository = ReportRepository(context) //comentado temporal
     private val gson = Gson()
 
     var reports by mutableStateOf<List<Report>>(emptyList())
@@ -37,7 +37,8 @@ class ReportViewModel(context: Context) : ViewModel() {
     fun loadReports() {
         viewModelScope.launch(Dispatchers.IO) {
             isLoading = true
-            val history = repository.getAllReports()
+            // val history = repository.getAllReports() //comentado temporal
+            val history = emptyList<Report>()
             withContext(Dispatchers.Main) {
                 reports = history
                 isLoading = false
@@ -78,7 +79,7 @@ class ReportViewModel(context: Context) : ViewModel() {
                 detailsJson = gson.toJson(details)
             )
 
-            repository.saveReport(newReport)
+            // repository.saveReport(newReport) //comentado temporal
             loadReports()
         }
     }
