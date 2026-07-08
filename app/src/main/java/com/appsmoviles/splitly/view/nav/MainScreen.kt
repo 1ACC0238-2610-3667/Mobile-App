@@ -20,6 +20,7 @@ import com.appsmoviles.splitly.view.dashboard.Dashboard
 import com.appsmoviles.splitly.view.expenses.Expenses
 import com.appsmoviles.splitly.view.households.Households
 import com.appsmoviles.splitly.view.members.Members
+import com.appsmoviles.splitly.view.income.IncomeScreen
 import com.appsmoviles.splitly.view.reports.ReportScreen
 import com.appsmoviles.splitly.viewmodel.AuthViewModel
 import com.appsmoviles.splitly.viewmodel.BillViewModel
@@ -92,6 +93,7 @@ fun MainScreen(
                         contributionViewModel = contributionViewModel,
                         dashboardViewModel = dashboardViewModel,
                         billViewModel = billViewModel,
+                        householdMemberViewModel = householdMemberViewModel,
                         onOpenDrawer = { scope.launch { drawerState.open() } }
                     )
                 }
@@ -119,7 +121,8 @@ fun MainScreen(
                         navController = rootNav,
                         settingsViewModel = settingsViewModel,
                         authViewModel = authViewModel,
-                        onOpenDrawer = { scope.launch { drawerState.open() } }
+                        onOpenDrawer = { scope.launch { drawerState.open() } },
+                        onNavigateToIncome = { navController.navigate("Income") }
                     )
                 }
                 composable("Contributions") {
@@ -137,6 +140,13 @@ fun MainScreen(
                         billViewModel = billViewModel,
                         contributionViewModel = contributionViewModel,
                         isOnline = true
+                    )
+                }
+                composable("Income") {
+                    IncomeScreen(
+                        context = context,
+                        navController = navController,
+                        householdMemberViewModel = householdMemberViewModel
                     )
                 }
             }
