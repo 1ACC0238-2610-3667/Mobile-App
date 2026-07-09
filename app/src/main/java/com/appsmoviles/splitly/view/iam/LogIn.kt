@@ -167,7 +167,7 @@ fun LogIn(nav: NavHostController, viewModel: AuthViewModel) {
                 }
             }
 
-            Button(
+            /*Button(
                 onClick = {
                     viewModel.loginOffline(context) {
                         nav.navigate("Reports") {
@@ -186,7 +186,7 @@ fun LogIn(nav: NavHostController, viewModel: AuthViewModel) {
                 )
             ) {
                 Text(text = "Entrar Offline", fontSize = 18.sp, fontWeight = FontWeight.Bold)
-            }
+            }*/
 
             Spacer(modifier = Modifier.height(24.dp))
 
@@ -233,10 +233,10 @@ fun LogIn(nav: NavHostController, viewModel: AuthViewModel) {
                         textAlign = TextAlign.Center,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
-                    Button(
+                    /*Button(
                 onClick = {
                     viewModel.loginOffline(context) {
-                        nav.navigate("Main") {
+                        nav.navigate("Reports") {
                             popUpTo("LogIn") { inclusive = true }
                         }
                     }
@@ -252,7 +252,7 @@ fun LogIn(nav: NavHostController, viewModel: AuthViewModel) {
                 )
             ) {
                 Text(text = "Entrar Offline", fontSize = 18.sp, fontWeight = FontWeight.Bold)
-            }
+            }*/
 
             Spacer(modifier = Modifier.height(24.dp))
                     Button(

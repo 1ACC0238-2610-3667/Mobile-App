@@ -3,6 +3,7 @@ package com.appsmoviles.splitly.view.nav
 import android.content.Context
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -32,11 +33,13 @@ fun Navigator(
 ) {
 
     val rememberScreen = rememberNavController()
+    val scope = rememberCoroutineScope()
 
-    NavHost(navController = rememberScreen, startDestination = "LogIn") {
+
+    NavHost(navController = rememberScreen,
+        startDestination = "LogIn") {
         composable("LogIn") { LogIn(rememberScreen, authViewModel) }
         composable("SignUp") { SignUp(rememberScreen, authViewModel) }
-        composable("Reports") { ReportScreen(reportViewModel, householdViewModel, billViewModel, contributionViewModel, true) }
         composable("Main") {
             MainScreen(
                 rootNav = rememberScreen,
@@ -48,7 +51,8 @@ fun Navigator(
                 contributionViewModel = contributionViewModel,
                 authViewModel = authViewModel,
                 reportViewModel = reportViewModel,
-                context = context
+                context = context,
+                scope = scope
             )
         }
     }

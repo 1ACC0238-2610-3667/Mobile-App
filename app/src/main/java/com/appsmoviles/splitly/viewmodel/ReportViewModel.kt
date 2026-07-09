@@ -1,6 +1,8 @@
 package com.appsmoviles.splitly.viewmodel
 
 // import android.content.Context
+import android.content.Context
+import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -23,22 +25,18 @@ import java.util.Date
 import java.util.Locale
 
 class ReportViewModel : ViewModel() {
-    // private val repository = ReportRepository(context) //comentado temporal
+    var repository by mutableStateOf<ReportRepository?>(null)
     private val gson = Gson()
 
     var reports by mutableStateOf<List<Report>>(emptyList())
     var isLoading by mutableStateOf(false)
     var isOffline by mutableStateOf(false)
 
-    init {
-        loadReports()
-    }
 
     fun loadReports() {
         viewModelScope.launch(Dispatchers.IO) {
             isLoading = true
-            // val history = repository.getAllReports() //comentado temporal
-            val history = emptyList<Report>()
+            val history = repository?.getAllReports() ?: emptyList()
             withContext(Dispatchers.Main) {
                 reports = history
                 isLoading = false
@@ -54,6 +52,7 @@ class ReportViewModel : ViewModel() {
         viewModelScope.launch(Dispatchers.IO) {
             val summaryItems = bills.map { bill ->
                 val contribution = contributionsMap.entries.find { it.key.billId == bill.id }
+                Log.d("Report - Contributions", "$contribution")
                 ReportSummaryItem(
                     billDescription = bill.description ?: "No description",
                     amount = bill.amount ?: 0.0,
@@ -79,7 +78,7 @@ class ReportViewModel : ViewModel() {
                 detailsJson = gson.toJson(details)
             )
 
-            // repository.saveReport(newReport) //comentado temporal
+            repository!!.saveReport(newReport) //comentado temporal
             loadReports()
         }
     }
