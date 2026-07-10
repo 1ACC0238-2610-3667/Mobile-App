@@ -5,12 +5,12 @@ import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
 
 class OpenHelper(context: Context): SQLiteOpenHelper(
-    context, "offlineDb.db", null, 2
+    context, "offlineDb.db", null, 3
 ){
     override fun onCreate(db: SQLiteDatabase?) {
         val queries = listOf(
             "create table users(_ID integer primary key autoincrement, name text, age integer, email text)",
-            "create table reports(id integer primary key autoincrement, title text, date text, total_amount real, details_json text)"
+            "create table reports(id integer primary key autoincrement, userId integer, title text, date text, total_amount real, details_json text)"
         )
 
         queries.forEach {

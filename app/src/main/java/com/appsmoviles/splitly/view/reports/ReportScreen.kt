@@ -105,11 +105,11 @@ fun ReportScreen(
                         val household = householdViewModel.households
                         Log.d("Report - households", "$household")
                         if (household != null) {
-                            val allBills = billViewModel.billsList
-                            Log.d("Report - Bills", "$allBills")
-                            household.forEach {
+                            household.forEach { household ->
+                                val allBills = billViewModel.billsList.filter { bill ->
+                                    bill.houseHoldId == household.id }
                                 reportViewModel.createReport(
-                                    householdName = it.name ?: "Household",
+                                    householdName = household.name ?: "Household",
                                     bills = allBills,
                                     contributionsMap = contributionViewModel.contributions
                                 )

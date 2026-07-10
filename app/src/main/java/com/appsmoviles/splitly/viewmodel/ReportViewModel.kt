@@ -15,6 +15,7 @@ import com.appsmoviles.splitly.model.beans.ReportSummaryItem
 import com.appsmoviles.splitly.model.beans.distribution.Bills
 import com.appsmoviles.splitly.model.beans.distribution.Contribution
 import com.appsmoviles.splitly.model.beans.distribution.MemberContribution
+import com.appsmoviles.splitly.model.client.CredentialsSessionManager
 import com.appsmoviles.splitly.model.repository.ReportRepository
 import com.google.gson.Gson
 import kotlinx.coroutines.Dispatchers
@@ -36,7 +37,7 @@ class ReportViewModel : ViewModel() {
     fun loadReports() {
         viewModelScope.launch(Dispatchers.IO) {
             isLoading = true
-            val history = repository?.getAllReports() ?: emptyList()
+            val history = repository?.getAllReports(CredentialsSessionManager.getIdFromUser()) ?: emptyList()
             withContext(Dispatchers.Main) {
                 reports = history
                 isLoading = false
@@ -70,15 +71,16 @@ class ReportViewModel : ViewModel() {
 
             val totalAmount = bills.sumOf { it.amount ?: 0.0 }
             val date = SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault()).format(Date())
-            
+
             val newReport = Report(
+                userId = CredentialsSessionManager.getIdFromUser(),
                 title = "Summary - $householdName",
                 date = date,
                 totalAmount = totalAmount,
                 detailsJson = gson.toJson(details)
             )
 
-            repository!!.saveReport(newReport) //comentado temporal
+            repository!!.saveReport(newReport)
             loadReports()
         }
     }

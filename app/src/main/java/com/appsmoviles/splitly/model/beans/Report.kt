@@ -2,6 +2,7 @@ package com.appsmoviles.splitly.model.beans
 
 data class Report(
     val id: Int? = null,
+    val userId: Int,
     val title: String,
     val date: String,
     val totalAmount: Double,
