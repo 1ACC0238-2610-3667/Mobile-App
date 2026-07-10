@@ -150,7 +150,7 @@ fun Drawer(nav: NavHostController, onCloseDrawer: () -> Unit, onLogOut: () -> Un
             },
             selected = false,
             onClick = {
-                sharedPreferences.edit().clear().apply()
+                //sharedPreferences.edit().clear().apply()
                 onLogOut()
             },
             icon = { 

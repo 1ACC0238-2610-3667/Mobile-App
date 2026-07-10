@@ -60,14 +60,14 @@ fun LogIn(nav: NavHostController, viewModel: AuthViewModel) {
     var txtPas by remember { mutableStateOf("") }
     var isPasswordVisible by remember { mutableStateOf(false) }
 
-    LaunchedEffect(Unit) {
+    /*LaunchedEffect(Unit) {
         val isLoggedIn = sharedPreferences.getBoolean("is_logged_in", false)
         if (isLoggedIn) {
             nav.navigate("Main") {
                 popUpTo("LogIn") { inclusive = true }
             }
         }
-    }
+    }*/
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
@@ -167,10 +167,10 @@ fun LogIn(nav: NavHostController, viewModel: AuthViewModel) {
                 }
             }
 
-            /*Button(
+            Button(
                 onClick = {
                     viewModel.loginOffline(context) {
-                        nav.navigate("Reports") {
+                        nav.navigate("OfflineReportScreen") {
                             popUpTo("LogIn") { inclusive = true }
                         }
                     }
@@ -186,7 +186,7 @@ fun LogIn(nav: NavHostController, viewModel: AuthViewModel) {
                 )
             ) {
                 Text(text = "Entrar Offline", fontSize = 18.sp, fontWeight = FontWeight.Bold)
-            }*/
+            }
 
             Spacer(modifier = Modifier.height(24.dp))
 
@@ -236,7 +236,7 @@ fun LogIn(nav: NavHostController, viewModel: AuthViewModel) {
                     /*Button(
                 onClick = {
                     viewModel.loginOffline(context) {
-                        nav.navigate("Reports") {
+                        nav.navigate("OfflineReportScreen") {
                             popUpTo("LogIn") { inclusive = true }
                         }
                     }

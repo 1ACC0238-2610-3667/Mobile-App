@@ -52,6 +52,8 @@ class AuthViewModel : ViewModel() {
 
                     val prefs = context.getSharedPreferences("splitly_prefs", Context.MODE_PRIVATE)
                     val editor = prefs.edit()
+                    editor.clear()
+                    editor.apply()
 
                     editor.putString("token", authData.token)
 
@@ -127,8 +129,8 @@ class AuthViewModel : ViewModel() {
                 val prefs = context.getSharedPreferences("splitly_prefs", Context.MODE_PRIVATE)
                 val editor = prefs.edit()
 
-                editor.clear()
-                editor.apply()
+                //editor.clear()
+                //editor.apply()
 
                 user = null
 

@@ -9,6 +9,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.appsmoviles.splitly.view.iam.LogIn
 import com.appsmoviles.splitly.view.iam.SignUp
+import com.appsmoviles.splitly.view.reports.OfflineReportScreen
 import com.appsmoviles.splitly.view.reports.ReportScreen
 import com.appsmoviles.splitly.viewmodel.AuthViewModel
 import com.appsmoviles.splitly.viewmodel.BillViewModel
@@ -40,6 +41,7 @@ fun Navigator(
         startDestination = "LogIn") {
         composable("LogIn") { LogIn(rememberScreen, authViewModel) }
         composable("SignUp") { SignUp(rememberScreen, authViewModel) }
+        composable("OfflineReportScreen") { OfflineReportScreen(reportViewModel, context, rememberScreen) }
         composable("Main") {
             MainScreen(
                 rootNav = rememberScreen,
