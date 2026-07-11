@@ -22,6 +22,7 @@ import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -43,6 +44,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
@@ -53,18 +55,22 @@ import com.appsmoviles.splitly.viewmodel.AuthViewModel
 @Composable
 fun SignUp(nav: NavHostController, viewModel: AuthViewModel) {
     val context = LocalContext.current
+    val translations = com.appsmoviles.splitly.utils.LocalTranslations.current
 
     var txtName by remember { mutableStateOf("") }
     var txtEmail by remember { mutableStateOf("") }
     var txtPas by remember { mutableStateOf("") }
     var txtConfirmPas by remember { mutableStateOf("") }
-    var role by remember { mutableStateOf("Member") }
+    var role by remember { mutableStateOf("Representative") }
     var isPasswordVisible by remember { mutableStateOf(false) }
     var isConfirmPasswordVisible by remember { mutableStateOf(false) }
 
     var checked by remember { mutableStateOf(true) }
 
-    Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
+    Scaffold(
+        modifier = Modifier.fillMaxSize(),
+        containerColor = MaterialTheme.colorScheme.background
+    ) { innerPadding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -85,16 +91,16 @@ fun SignUp(nav: NavHostController, viewModel: AuthViewModel) {
             Spacer(modifier = Modifier.height(16.dp))
 
             Text(
-                text = "Create Account",
+                text = translations["create_account"] ?: "Create Account",
                 fontSize = 28.sp,
                 fontWeight = FontWeight.ExtraBold,
                 color = MaterialTheme.colorScheme.primary
             )
 
             Text(
-                text = "Join Splitly and start sharing",
+                text = translations["join_splitly"] ?: "Join Splitly and start sharing",
                 fontSize = 16.sp,
-                color = Color.Gray
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
 
             Spacer(modifier = Modifier.height(32.dp))
@@ -136,7 +142,7 @@ fun SignUp(nav: NavHostController, viewModel: AuthViewModel) {
                 value = txtName,
                 onValueChange = { txtName = it },
                 modifier = Modifier.fillMaxWidth(),
-                label = { Text("Full Name") },
+                label = { Text(translations["full_name"] ?: "Full Name") },
                 placeholder = { Text("John Doe") },
                 leadingIcon = {
                     Icon(imageVector = Icons.Default.Person, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
@@ -151,7 +157,7 @@ fun SignUp(nav: NavHostController, viewModel: AuthViewModel) {
                 value = txtEmail,
                 onValueChange = { txtEmail = it },
                 modifier = Modifier.fillMaxWidth(),
-                label = { Text("Email Address") },
+                label = { Text(translations["email_address"] ?: "Email Address") },
                 placeholder = { Text("example@mail.com") },
                 leadingIcon = {
                     Icon(imageVector = Icons.Default.Email, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
@@ -166,7 +172,7 @@ fun SignUp(nav: NavHostController, viewModel: AuthViewModel) {
                 value = txtPas,
                 onValueChange = { txtPas = it },
                 modifier = Modifier.fillMaxWidth(),
-                label = { Text("Password") },
+                label = { Text(translations["password"] ?: "Password") },
                 leadingIcon = {
                     Icon(imageVector = Icons.Default.Lock, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
                 },
@@ -187,7 +193,7 @@ fun SignUp(nav: NavHostController, viewModel: AuthViewModel) {
                 value = txtConfirmPas,
                 onValueChange = { txtConfirmPas = it },
                 modifier = Modifier.fillMaxWidth(),
-                label = { Text("Confirm Password") },
+                label = { Text(translations["confirm_password"] ?: "Confirm Password") },
                 leadingIcon = {
                     Icon(imageVector = Icons.Default.Lock, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
                 },
@@ -228,7 +234,8 @@ fun SignUp(nav: NavHostController, viewModel: AuthViewModel) {
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(56.dp),
-                shape = RoundedCornerShape(12.dp)
+                shape = RoundedCornerShape(12.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
             ) {
                 if (viewModel.isLoading) {
                     CircularProgressIndicator(
@@ -237,7 +244,7 @@ fun SignUp(nav: NavHostController, viewModel: AuthViewModel) {
                         strokeWidth = 2.dp
                     )
                 } else {
-                    Text(text = "Sign Up", fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                    Text(text = translations["sign_up"] ?: "Sign Up", fontSize = 18.sp, fontWeight = FontWeight.Bold)
                 }
             }
 
@@ -247,14 +254,15 @@ fun SignUp(nav: NavHostController, viewModel: AuthViewModel) {
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.Center
             ) {
-                Text(text = "Already have an account? ", color = Color.Gray)
+                val alreadyReg = translations["already_registered"] ?: "Already have an account? Log In"
                 Text(
-                    text = "Log In",
+                    text = alreadyReg,
                     color = MaterialTheme.colorScheme.primary,
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier.clickable {
                         nav.popBackStack()
-                    }
+                    },
+                    textAlign = TextAlign.Center
                 )
             }
 

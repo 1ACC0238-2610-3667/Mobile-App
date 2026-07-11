@@ -20,13 +20,17 @@ import com.appsmoviles.splitly.view.dashboard.Dashboard
 import com.appsmoviles.splitly.view.expenses.Expenses
 import com.appsmoviles.splitly.view.households.Households
 import com.appsmoviles.splitly.view.members.Members
+import com.appsmoviles.splitly.view.income.IncomeScreen
+import com.appsmoviles.splitly.view.reports.ReportScreen
 import com.appsmoviles.splitly.viewmodel.AuthViewModel
 import com.appsmoviles.splitly.viewmodel.BillViewModel
 import com.appsmoviles.splitly.viewmodel.HouseholdMemberViewModel
-import com.appsmoviles.splitly.viewmodel.SettingsViewModel
+import com.appsmoviles.splitly.viewmodel.ReportViewModel
 import com.appsmoviles.splitly.viewmodel.contributions.ContributionViewModel
 import com.appsmoviles.splitly.viewmodel.dashboard.DashboardViewModel
 import com.appsmoviles.splitly.viewmodel.household.HouseholdViewModel
+import com.appsmoviles.splitly.viewmodel.SettingsViewModel
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
 @Composable
@@ -39,11 +43,12 @@ fun MainScreen(
     billViewModel: BillViewModel,
     contributionViewModel: ContributionViewModel,
     authViewModel: AuthViewModel,
-    context: Context
+    reportViewModel: ReportViewModel,
+    context: Context,
+    scope: CoroutineScope
 ) {
     val navController = rememberNavController()
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
-    val scope = rememberCoroutineScope()
 
     ModalNavigationDrawer(
         drawerState = drawerState,
@@ -68,30 +73,100 @@ fun MainScreen(
             }
         }
     ) {
-        Scaffold(
-            bottomBar = {
-                AppNavigationBar(
-                    navController = navController,
-                    onOpenDrawer = {
-                        scope.launch { drawerState.open() }
-                    }
-                )
-            }
-        ) { padding ->
+        Scaffold { padding ->
             NavHost(
                 navController = navController,
-                startDestination = "Dashboard",
-                modifier = Modifier.padding(padding)
-            ) {
-                composable("Dashboard") { Dashboard(dashboardViewModel, context, navController) }
-                composable("Expenses") { Expenses(context, navController, contributionViewModel) }
-                composable("Households") { Households(context, navController, householdViewModel) }
-                composable("Members") { Members(context, navController, householdMemberViewModel) }
-                composable("Settings") { SettingsScreen(context, rootNav, settingsViewModel, authViewModel) }
-                composable("Contributions") { Contributions(context, navController, billViewModel) }
 
+                startDestination = "Dashboard",
+                modifier = Modifier.padding()
+            ) {
+                if(!authViewModel.isOfflineMode) {
+                    composable("Dashboard") {
+                        Dashboard(
+                            viewModel = dashboardViewModel,
+                            context = context,
+                            navController = navController,
+                            onOpenDrawer = { scope.launch { drawerState.open() } }
+                        )
+                    }
+                    composable("Expenses") {
+                        Expenses(
+                            context = context,
+                            navController = navController,
+                            contributionViewModel = contributionViewModel,
+                            dashboardViewModel = dashboardViewModel,
+                            billViewModel = billViewModel,
+                            householdMemberViewModel = householdMemberViewModel,
+                            onOpenDrawer = { scope.launch { drawerState.open() } }
+                        )
+                    }
+                    composable("Households") {
+                        Households(
+                            context = context,
+                            navController = navController,
+                            viewModel = householdViewModel,
+                            dashboardViewModel = dashboardViewModel,
+                            householdMemberViewModel = householdMemberViewModel,
+                            onOpenDrawer = { scope.launch { drawerState.open() } }
+                        )
+                    }
+                    composable("Members") {
+                        Members(
+                            context = context,
+                            navController = navController,
+                            viewModel = householdMemberViewModel,
+                            onOpenDrawer = { scope.launch { drawerState.open() } }
+                        )
+                    }
+                    composable("Settings") {
+                        SettingsScreen(
+                            context = context,
+                            navController = rootNav,
+                            settingsViewModel = settingsViewModel,
+                            authViewModel = authViewModel,
+                            onOpenDrawer = { scope.launch { drawerState.open() } },
+                            onNavigateToIncome = { navController.navigate("Income") }
+                        )
+                    }
+                    composable("Contributions") {
+                        Contributions(
+                            context = context,
+                            navController = navController,
+                            billViewModel = billViewModel,
+                            onOpenDrawer = { scope.launch { drawerState.open() } }
+                        )
+                    }
+                    composable("Income") {
+                        IncomeScreen(
+                            context = context,
+                            navController = navController,
+                            householdMemberViewModel = householdMemberViewModel
+                        )
+                    }
+                }
+                    composable("Reports") {
+                        ReportScreen(
+                            reportViewModel = reportViewModel,
+                            householdViewModel = householdViewModel,
+                            billViewModel = billViewModel,
+                            contributionViewModel = contributionViewModel,
+                            isOnline = true,
+                            context,
+                            onOpenDrawer = {
+                                if (!authViewModel.isOfflineMode){
+                                    scope.launch { drawerState.open() }
+                                }else{
+                                    rootNav.navigate("LogIn") {
+                                        popUpTo(0) { inclusive = true }
+                                    }
+                                }
+
+                            }
+                        )
+                    }
 
             }
         }
     }
 }
+

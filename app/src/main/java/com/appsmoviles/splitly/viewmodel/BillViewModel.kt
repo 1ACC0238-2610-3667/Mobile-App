@@ -17,8 +17,13 @@ class BillViewModel : ViewModel() {
     var errorMessage: String? by mutableStateOf(null)
 
     var billsList by mutableStateOf<List<Bills>>(emptyList())
+    var lastUpdated by mutableStateOf(0L)
 
-    fun getBillByHouseHoldId(householdId: String) {
+    fun getBillByHouseHoldId(householdId: String, forceRefresh: Boolean = false) {
+        val now = System.currentTimeMillis()
+        if (!forceRefresh && (now - lastUpdated) < 120_000L && billsList.isNotEmpty()) {
+            return
+        }
         viewModelScope.launch {
             isLoading = true
             errorMessage = null
@@ -28,6 +33,7 @@ class BillViewModel : ViewModel() {
                 }
                 if (response.isSuccessful && response.body() != null) {
                     billsList = response.body()!!
+                    lastUpdated = System.currentTimeMillis()
                 } else {
                     errorMessage = "Error al cargar historial: ${response.code()}"
                 }

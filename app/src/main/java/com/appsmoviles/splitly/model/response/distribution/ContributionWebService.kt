@@ -21,4 +21,7 @@ interface ContributionWebService {
 
     @GET("contribution/bybillid/{billId}")
     suspend fun getContributionByBillId(@Path("billId") billId: String): Response<Contribution>
+
+    @GET("contribution/{id}")
+    suspend fun getContributionById(@Path("id") id: String): Response<Contribution>
 }

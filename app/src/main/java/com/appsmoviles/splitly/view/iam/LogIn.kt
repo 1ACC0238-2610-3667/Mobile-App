@@ -19,6 +19,7 @@ import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -36,7 +37,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -54,21 +54,25 @@ import com.appsmoviles.splitly.viewmodel.AuthViewModel
 fun LogIn(nav: NavHostController, viewModel: AuthViewModel) {
     val context = LocalContext.current
     val sharedPreferences = remember { context.getSharedPreferences("splitly_prefs", Context.MODE_PRIVATE) }
+    val translations = com.appsmoviles.splitly.utils.LocalTranslations.current
 
     var txtUser by remember { mutableStateOf(sharedPreferences.getString("email", "") ?: "") }
     var txtPas by remember { mutableStateOf("") }
     var isPasswordVisible by remember { mutableStateOf(false) }
 
-    LaunchedEffect(Unit) {
+    /*LaunchedEffect(Unit) {
         val isLoggedIn = sharedPreferences.getBoolean("is_logged_in", false)
         if (isLoggedIn) {
             nav.navigate("Main") {
                 popUpTo("LogIn") { inclusive = true }
             }
         }
-    }
+    }*/
 
-    Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
+    Scaffold(
+        modifier = Modifier.fillMaxSize(),
+        containerColor = MaterialTheme.colorScheme.background
+    ) { innerPadding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -80,22 +84,23 @@ fun LogIn(nav: NavHostController, viewModel: AuthViewModel) {
             Image(
                 painter = painterResource(id = R.drawable.splitlylogo),
                 contentDescription = "Splitly Logo",
-                modifier = Modifier.size(180.dp)
+                modifier = Modifier.size(160.dp)
             )
 
             Spacer(modifier = Modifier.height(16.dp))
 
             Text(
-                text = "Welcome Back",
+                text = translations["welcome_back"] ?: "Welcome Back",
                 fontSize = 28.sp,
                 fontWeight = FontWeight.ExtraBold,
                 color = MaterialTheme.colorScheme.primary
             )
 
             Text(
-                text = "Login to your account",
-                fontSize = 16.sp,
-                color = Color.Gray
+                text = translations["join_splitly"] ?: "Join Splitly and start sharing",
+                fontSize = 15.sp,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = TextAlign.Center
             )
 
             Spacer(modifier = Modifier.height(32.dp))
@@ -104,7 +109,7 @@ fun LogIn(nav: NavHostController, viewModel: AuthViewModel) {
                 value = txtUser,
                 onValueChange = { txtUser = it },
                 modifier = Modifier.fillMaxWidth(),
-                label = { Text("Email Address") },
+                label = { Text(translations["email_address"] ?: "Email Address") },
                 placeholder = { Text("example@mail.com") },
                 leadingIcon = {
                     Icon(imageVector = Icons.Default.Person, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
@@ -119,7 +124,7 @@ fun LogIn(nav: NavHostController, viewModel: AuthViewModel) {
                 value = txtPas,
                 onValueChange = { txtPas = it },
                 modifier = Modifier.fillMaxWidth(),
-                label = { Text("Password") },
+                label = { Text(translations["password"] ?: "Password") },
                 leadingIcon = {
                     Icon(imageVector = Icons.Default.Lock, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
                 },
@@ -148,7 +153,8 @@ fun LogIn(nav: NavHostController, viewModel: AuthViewModel) {
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(56.dp),
-                shape = RoundedCornerShape(12.dp)
+                shape = RoundedCornerShape(12.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
             ) {
                 if (viewModel.isLoading) {
                     CircularProgressIndicator(
@@ -157,8 +163,29 @@ fun LogIn(nav: NavHostController, viewModel: AuthViewModel) {
                         strokeWidth = 2.dp
                     )
                 } else {
-                    Text(text = "Log In", fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                    Text(text = translations["log_in"] ?: "Log In", fontSize = 18.sp, fontWeight = FontWeight.Bold)
                 }
+            }
+
+            Button(
+                onClick = {
+                    viewModel.loginOffline(context) {
+                        nav.navigate("OfflineReportScreen") {
+                            popUpTo("LogIn") { inclusive = true }
+                        }
+                    }
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(56.dp)
+                    .padding(top = 16.dp),
+                shape = RoundedCornerShape(12.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                    contentColor = MaterialTheme.colorScheme.onSecondaryContainer
+                )
+            ) {
+                Text(text = "Entrar Offline", fontSize = 18.sp, fontWeight = FontWeight.Bold)
             }
 
             Spacer(modifier = Modifier.height(24.dp))
@@ -167,14 +194,15 @@ fun LogIn(nav: NavHostController, viewModel: AuthViewModel) {
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.Center
             ) {
-                Text(text = "Are you registered? ", color = Color.Gray)
+                val registerHint = translations["not_registered"] ?: "Are you registered? Sign Up Now"
                 Text(
-                    text = "Sign Up Now",
+                    text = registerHint,
                     color = MaterialTheme.colorScheme.primary,
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier.clickable {
                         nav.navigate("SignUp")
-                    }
+                    },
+                    textAlign = TextAlign.Center
                 )
             }
         }
@@ -190,8 +218,7 @@ fun LogIn(nav: NavHostController, viewModel: AuthViewModel) {
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
             ) {
                 Column(
-                    modifier = Modifier
-                        .padding(24.dp),
+                    modifier = Modifier.padding(24.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Text(
@@ -206,10 +233,32 @@ fun LogIn(nav: NavHostController, viewModel: AuthViewModel) {
                         textAlign = TextAlign.Center,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
-                    Spacer(modifier = Modifier.height(24.dp))
+                    /*Button(
+                onClick = {
+                    viewModel.loginOffline(context) {
+                        nav.navigate("OfflineReportScreen") {
+                            popUpTo("LogIn") { inclusive = true }
+                        }
+                    }
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(56.dp)
+                    .padding(top = 16.dp),
+                shape = RoundedCornerShape(12.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                    contentColor = MaterialTheme.colorScheme.onSecondaryContainer
+                )
+            ) {
+                Text(text = "Entrar Offline", fontSize = 18.sp, fontWeight = FontWeight.Bold)
+            }*/
+
+            Spacer(modifier = Modifier.height(24.dp))
                     Button(
                         onClick = { viewModel.clearError() },
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
                     ) {
                         Text("Try Again")
                     }

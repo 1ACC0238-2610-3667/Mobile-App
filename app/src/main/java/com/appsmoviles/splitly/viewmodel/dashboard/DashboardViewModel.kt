@@ -23,6 +23,7 @@ class DashboardViewModel : ViewModel() {
 
     var userName by mutableStateOf("User")
     var email by mutableStateOf("")
+    var activeHouseholdName by mutableStateOf<String?>(null)
 
     var totalHouseholdsCount by mutableStateOf(0)
     var totalMembersCount by mutableStateOf(0)
@@ -30,11 +31,19 @@ class DashboardViewModel : ViewModel() {
     var totalPending by mutableStateOf(0.0)
 
     var approvalsNeeded by mutableStateOf<List<ApprovalItem>>(emptyList())
+    
+    // 1. NUEVA VARIABLE PARA LAS DEUDAS DEL REPRESENTANTE
+    var myPendingDebts by mutableStateOf<List<ApprovalItem>>(emptyList())
 
     var isLoading by mutableStateOf(true)
     var errorMessage by mutableStateOf<String?>(null)
+    var lastUpdated by mutableStateOf(0L)
 
-    fun loadSummary(context: Context) {
+    fun loadSummary(context: Context, forceRefresh: Boolean = false) {
+        val now = System.currentTimeMillis()
+        if (!forceRefresh && (now - lastUpdated) < 120_000L && approvalsNeeded.isNotEmpty()) {
+            return
+        }
         viewModelScope.launch(Dispatchers.IO) {
             withContext(Dispatchers.Main) {
                 isLoading = true
@@ -49,7 +58,7 @@ class DashboardViewModel : ViewModel() {
                 try {
                     val json = JSONObject(userJsonStr)
                     withContext(Dispatchers.Main) {
-                        userName = json.optString("name", "User")
+                        userName = json.optString("name", "User") // <-- Aquí lee el nombre que Swagger nos devolvió
                         email = json.optString("email", "Email")
                     }
                     userId = json.optInt("id", -1)
@@ -62,6 +71,12 @@ class DashboardViewModel : ViewModel() {
                     if (householdsRes.isSuccessful && householdsRes.body() != null) {
                         val householdsList = householdsRes.body()!!
 
+                        val activeId = prefs.getString("householdId", null)
+                        val activeHousehold = householdsList.find { it.id == activeId }
+                        withContext(Dispatchers.Main) {
+                            activeHouseholdName = activeHousehold?.name
+                        }
+
                         val usersRes = RetrofitClient.userWebService.getAllUsers()
                         val userMap: Map<Int?, String> = if (usersRes.isSuccessful && usersRes.body() != null) {
                             usersRes.body()!!.associate { it.id to (it.personName?.takeIf { name -> name.isNotEmpty() } ?: it.email ?: "Miembro") }
@@ -71,6 +86,9 @@ class DashboardViewModel : ViewModel() {
                         var collected = 0.0
                         var pending = 0.0
                         val pendingApprovals = mutableListOf<ApprovalItem>()
+                        
+                        // 2. NUEVA LISTA TEMPORAL PARA MIS PROPIAS DEUDAS
+                        val myPendingList = mutableListOf<ApprovalItem>()
 
                         for (household in householdsList) {
                             val hId = household.id ?: continue
@@ -97,6 +115,11 @@ class DashboardViewModel : ViewModel() {
                                                 pendingApprovals.add(ApprovalItem(mc.id!!, hName, memberName, amount))
                                             } else {
                                                 pending += amount
+                                                
+                                                // 3. SEPARAMOS MIS DEUDAS DE LAS DE LOS DEMÁS
+                                                if (member.userId == userId) {
+                                                    myPendingList.add(ApprovalItem(mc.id!!, hName, "Mi Deuda", amount))
+                                                }
                                             }
                                         }
                                     }
@@ -110,6 +133,8 @@ class DashboardViewModel : ViewModel() {
                             totalCollected = collected
                             totalPending = pending
                             approvalsNeeded = pendingApprovals
+                            myPendingDebts = myPendingList // <- Pasamos los datos al estado de la UI
+                            lastUpdated = System.currentTimeMillis()
                         }
                     } else {
                         withContext(Dispatchers.Main) { errorMessage = "Error al cargar los hogares." }
@@ -129,7 +154,7 @@ class DashboardViewModel : ViewModel() {
             try {
                 val response = RetrofitClient.memberContributionWebService.approvePayment(contributionId)
                 if (response.isSuccessful) {
-                    loadSummary(context)
+                    loadSummary(context, forceRefresh = true)
                 } else {
                     withContext(Dispatchers.Main) { errorMessage = "Error: ${response.code()}" }
                 }

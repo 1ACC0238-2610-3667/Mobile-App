@@ -9,6 +9,9 @@ import com.appsmoviles.splitly.model.beans.distribution.CreateHouseHoldResource
 import com.appsmoviles.splitly.model.beans.householdmanagement.Household
 import com.appsmoviles.splitly.model.client.RetrofitClient
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -18,6 +21,7 @@ class HouseholdViewModel : ViewModel() {
     var isLoading by mutableStateOf(false)
     var errorMessage: String? by mutableStateOf(null)
     var households: List<Household> by mutableStateOf(emptyList())
+    var householdHasDebtsMap by mutableStateOf<Map<String, Boolean>>(emptyMap())
     var auxHousehold: Household? by mutableStateOf(null)
 
     fun getHouseholdById(id: String) {
@@ -33,7 +37,13 @@ class HouseholdViewModel : ViewModel() {
         }
     }
 
-    fun getHouseholdsByRepresentativeId(id: Int) {
+    var lastUpdated by mutableStateOf(0L)
+
+    fun getHouseholdsByRepresentativeId(id: Int, forceRefresh: Boolean = false) {
+        val now = System.currentTimeMillis()
+        if (!forceRefresh && (now - lastUpdated) < 120_000L && households.isNotEmpty()) {
+            return
+        }
         viewModelScope.launch {
             isLoading = true
             errorMessage = null
@@ -41,7 +51,41 @@ class HouseholdViewModel : ViewModel() {
                 val response = withContext(Dispatchers.IO) {
                     RetrofitClient.householdWebService.getHouseHoldByRepresentativeId(id)
                 }
-                if (response.isSuccessful && response.body() != null) households = response.body()!!.filterNotNull()
+                if (response.isSuccessful && response.body() != null) {
+                    val list = response.body()!!.filterNotNull()
+                    val debtsMap = coroutineScope {
+                        list.map { household ->
+                            async(Dispatchers.IO) {
+                                val hId = household.id ?: return@async null
+                                val membersRes = RetrofitClient.householdMemberWebService.getHouseholdMembersByHouseholdId(hId)
+                                var hasDebts = false
+                                if (membersRes.isSuccessful && membersRes.body() != null) {
+                                    val members = membersRes.body()!!
+                                    for (member in members) {
+                                        val mcRes = RetrofitClient.memberContributionWebService.getMemberContributionsByMemberId(member.id!!)
+                                        if (mcRes.isSuccessful && mcRes.body() != null) {
+                                            val mcs = mcRes.body()!!
+                                            for (mc in mcs) {
+                                                val status = mc.status?.lowercase() ?: "pending"
+                                                if (status != "done" && status != "paid" && status != "approved") {
+                                                    hasDebts = true
+                                                    break
+                                                }
+                                            }
+                                        }
+                                        if (hasDebts) break
+                                    }
+                                }
+                                hId to hasDebts
+                            }
+                        }.awaitAll().filterNotNull().toMap()
+                    }
+                    withContext(Dispatchers.Main) {
+                        householdHasDebtsMap = debtsMap
+                        households = list
+                        lastUpdated = System.currentTimeMillis()
+                    }
+                }
             } catch (e: Exception) { errorMessage = "Error: ${e.message}" } finally { isLoading = false }
         }
     }

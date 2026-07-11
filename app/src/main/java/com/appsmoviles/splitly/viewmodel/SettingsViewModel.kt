@@ -7,6 +7,7 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.appsmoviles.splitly.model.beans.appmanagement.Settings
+import com.appsmoviles.splitly.model.client.CredentialsSessionManager
 import com.appsmoviles.splitly.model.client.RetrofitClient
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -33,29 +34,48 @@ class SettingsViewModel: ViewModel() {
                     viewModelScope.launch {
                         try {
                             val response = RetrofitClient.settingsWebService.getSettingByUserId(userId)
-                            if (response.isSuccessful) {
-                                settings = response.body()
-                            } else if(response.body() == null) {
+                            if (response.isSuccessful && response.body() != null) {
+                                val loaded = response.body()!!
+                                settings = loaded
+                                syncLocalManager(loaded)
+                            } else {
+                                // Default or create new
+                                val defaultLang = CredentialsSessionManager.getLanguage1().ifEmpty { "es" }
+                                val defaultDark = CredentialsSessionManager.getDarkMode1()
+                                val defaultNotif = CredentialsSessionManager.getNotificationEnabled1()
+                                
                                 val newSettingsResponse = withContext(Dispatchers.IO){
                                     RetrofitClient.settingsWebService.createSettings(
                                         Settings(
                                             id = 0,
                                             userId = userId,
-                                            language = "",
-                                            darkMode = false,
-                                            notificationEnabled = false,
+                                            language = defaultLang,
+                                            darkMode = defaultDark,
+                                            notificationEnabled = defaultNotif,
                                             createdAt = "",
                                             updatedAt = ""
-
                                         ))
                                 }
-
-                                settings = newSettingsResponse.body()
-                            }else{
-                                errorMessage = "Error loading settings"
+                                if (newSettingsResponse.isSuccessful && newSettingsResponse.body() != null) {
+                                    val created = newSettingsResponse.body()!!
+                                    settings = created
+                                    syncLocalManager(created)
+                                } else {
+                                    errorMessage = "Error loading settings"
+                                }
                             }
                         } catch (e: Exception) {
                             errorMessage = e.message
+                            // If network failure, load whatever is local
+                            settings = Settings(
+                                id = 0,
+                                userId = userId,
+                                language = CredentialsSessionManager.getLanguage1(),
+                                darkMode = CredentialsSessionManager.getDarkMode1(),
+                                notificationEnabled = CredentialsSessionManager.getNotificationEnabled1(),
+                                createdAt = "",
+                                updatedAt = ""
+                            )
                         } finally {
                             isLoading = false
                         }
@@ -68,20 +88,29 @@ class SettingsViewModel: ViewModel() {
     }
 
     fun updateSettings(updatedSettings: Settings) {
-        isLoading = true
+        // Optimistic local update (instant reaction)
+        syncLocalManager(updatedSettings)
+        settings = updatedSettings
+
         viewModelScope.launch {
             try {
                 val response = RetrofitClient.settingsWebService.updateSetting(updatedSettings.id, updatedSettings)
-                if (response.isSuccessful) {
-                    settings = response.body()
+                if (response.isSuccessful && response.body() != null) {
+                    val saved = response.body()!!
+                    settings = saved
+                    syncLocalManager(saved)
                 } else {
-                    errorMessage = "Error updating settings"
+                    errorMessage = "Error syncing settings with server"
                 }
             } catch (e: Exception) {
                 errorMessage = e.message
-            } finally {
-                isLoading = false
             }
         }
+    }
+
+    private fun syncLocalManager(s: Settings) {
+        CredentialsSessionManager.setDarkMode1(s.darkMode)
+        CredentialsSessionManager.setLanguage1(s.language)
+        CredentialsSessionManager.setNotificationsState(s.notificationEnabled)
     }
 }

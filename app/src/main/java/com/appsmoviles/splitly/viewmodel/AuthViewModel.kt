@@ -23,6 +23,21 @@ class AuthViewModel : ViewModel() {
     var isLoading by mutableStateOf(false)
     var errorMessage: String? by mutableStateOf(null)
 
+    var isOfflineMode by mutableStateOf(false)
+
+    fun loginOffline(context: Context, onSuccess: () -> Unit) {
+        val prefs = context.getSharedPreferences("splitly_prefs", Context.MODE_PRIVATE)
+        val isLoggedIn = prefs.getBoolean("is_logged_in", false)
+
+        if (isLoggedIn) {
+            isOfflineMode = true
+            CredentialsSessionManager.init(context)
+            onSuccess()
+        } else {
+            errorMessage = "No hay datos locales. Debes iniciar sesión online primero."
+        }
+    }
+
     fun login(context: Context, email: String, pas: String, onSuccess: () -> Unit) {
         viewModelScope.launch {
             isLoading = true
@@ -37,6 +52,8 @@ class AuthViewModel : ViewModel() {
 
                     val prefs = context.getSharedPreferences("splitly_prefs", Context.MODE_PRIVATE)
                     val editor = prefs.edit()
+                    editor.clear()
+                    editor.apply()
 
                     editor.putString("token", authData.token)
 
@@ -112,8 +129,8 @@ class AuthViewModel : ViewModel() {
                 val prefs = context.getSharedPreferences("splitly_prefs", Context.MODE_PRIVATE)
                 val editor = prefs.edit()
 
-                editor.clear()
-                editor.apply()
+                //editor.clear()
+                //editor.apply()
 
                 user = null
 

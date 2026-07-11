@@ -33,6 +33,7 @@ class ContributionViewModel: ViewModel() {
         creatorId: Int,
         paymentDate: String,
         deadline: String,
+        isProportional: Boolean = false,
         onSuccess: () -> Unit
     ) {
         viewModelScope.launch(Dispatchers.IO) {
@@ -48,6 +49,15 @@ class ContributionViewModel: ViewModel() {
                 if (members.isEmpty()) {
                     throw Exception("No hay miembros en este hogar. Invita a alguien antes de crear gastos.")
                 }
+
+                if (isProportional) {
+                    val invalidMembers = members.filter { it.income == null || it.income!! <= 0.0 }
+                    if (invalidMembers.isNotEmpty()) {
+                        throw Exception("Todos los miembros (incluyéndote) deben tener un ingreso registrado válido.")
+                    }
+                }
+                
+                val totalIncome = if (isProportional) members.sumOf { it.income!! } else 0.0
 
                 val newBill = CreateBillResource(
                     houseHoldId = householdId,
@@ -71,15 +81,19 @@ class ContributionViewModel: ViewModel() {
                 if (!contribRes.isSuccessful || contribRes.body() == null) throw Exception("Error al crear Regla de División")
                 val createdContrib = contribRes.body()!!
 
-                val splitAmount = totalAmount / members.size
-
                 coroutineScope {
                     val deferreds = members.map { member ->
                         async(Dispatchers.IO) {
+                            val memberShare = if (isProportional) {
+                                totalAmount * (member.income!! / totalIncome)
+                            } else {
+                                totalAmount / members.size
+                            }
+                            
                             val mc = CreateMemberContributionResource(
                                 contributionId = createdContrib.id!!,
                                 memberId = member.id!!,
-                                amount = splitAmount
+                                amount = memberShare
                             )
                             val mcRes = RetrofitClient.memberContributionWebService.createMemberContribution(mc)
                             if (!mcRes.isSuccessful) throw Exception("Fallo al asignar cuota al miembro ${member.id}")
